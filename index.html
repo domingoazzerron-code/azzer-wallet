@@ -909,6 +909,14 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             <span>Export CSV</span>
                         </button>
+                        <button class="dropdown-item" role="menuitem" onclick="menuAction(exportJSON)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                            <span>Backup Data (JSON)</span>
+                        </button>
+                        <button class="dropdown-item" role="menuitem" onclick="menuAction(() => document.getElementById('jsonImportInput').click())">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg>
+                            <span>Import Backup (JSON)</span>
+                        </button>
                         <button class="dropdown-item" id="installItem" role="menuitem" hidden onclick="menuAction(installApp)">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 8v6"/><path d="m9 11 3 3 3-3"/></svg>
                             <span>Install App</span>
@@ -1456,6 +1464,8 @@
         </div>
     </div>
 
+    <input type="file" id="jsonImportInput" accept="application/json,.json" hidden onchange="importJSON(event)">
+
     <!-- Toast -->
     <div id="toast"><span id="toastMsg">Success</span></div>
 
@@ -1997,6 +2007,54 @@
             showToast('CSV Exported');
         }
 
+        // Full JSON backup: includes balances, transactions, goals, bills, debts, categories and preferences.
+        function exportJSON() {
+            const backup = {
+                app: 'Azzer Wallet', version: 1, exportedAt: new Date().toISOString(),
+                data: { accounts, historyLogs, monthlyGoals, recurringBills, debts, customCategories, isPrivacyHidden, currentTheme }
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `azzer_wallet_backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+            showToast('JSON backup downloaded');
+        }
+
+        function importJSON(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const backup = JSON.parse(reader.result);
+                    const data = backup && backup.data ? backup.data : backup;
+                    if (!data || !Array.isArray(data.accounts) || !Array.isArray(data.historyLogs)) throw new Error('Invalid backup structure');
+                    const validAccounts = data.accounts.every(a => a && typeof a.id === 'string' && typeof a.name === 'string' && Number.isFinite(Number(a.balance)));
+                    const validHistory = data.historyLogs.every(l => l && typeof l === 'object' && Number.isFinite(Number(l.amount)) && typeof l.type === 'string');
+                    if (!validAccounts || !validHistory) throw new Error('Invalid wallet records');
+                    if (!confirm('Import this backup? Your current wallet data will be replaced.')) return;
+                    accounts = data.accounts;
+                    historyLogs = data.historyLogs.map(l => ({ ...l, note: l.note || '' }));
+                    if (data.monthlyGoals && typeof data.monthlyGoals === 'object') monthlyGoals = data.monthlyGoals;
+                    if (Array.isArray(data.recurringBills)) recurringBills = data.recurringBills;
+                    if (Array.isArray(data.debts)) debts = data.debts;
+                    if (Array.isArray(data.customCategories)) customCategories = data.customCategories;
+                    if (typeof data.isPrivacyHidden === 'boolean') isPrivacyHidden = data.isPrivacyHidden;
+                    if (THEMES.includes(data.currentTheme)) currentTheme = data.currentTheme;
+                    applyTheme(); saveData(); renderApp(); applyPrivacy();
+                    showToast('Backup imported successfully');
+                } catch (err) {
+                    console.error('JSON import failed:', err);
+                    showToast('Invalid backup file');
+                    alert('Hindi mabasa ang backup file. Siguraduhing Azzer Wallet JSON backup ito.');
+                } finally { event.target.value = ''; }
+            };
+            reader.onerror = () => { showToast('Could not read backup file'); event.target.value = ''; };
+            reader.readAsText(file);
+        }
+
         // Render Visual Category Analytics
         function renderAnalytics() {
             const list = document.getElementById('categoryBreakdownList');
@@ -2282,6 +2340,10 @@
             });
         }
 
+        function escapeHTML(value) {
+            return String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+        }
+
         function renderHistory() {
             const container = document.getElementById('historyList');
             container.innerHTML = '';
@@ -2334,7 +2396,8 @@
                 item.innerHTML = `
                     <div>
                         <h5 style="font-size: 13px; font-weight: 700;">${log.title}</h5>
-                        <p style="font-size: 10px; color: var(--text-muted);">${log.category || 'General'} • ${log.date || ''} ${log.time}</p>
+                        <p style="font-size: 10px; color: var(--text-muted);">${log.category || 'General'} • ${log.date || ''} ${log.time || ''}</p>
+                        ${log.note ? `<p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; overflow-wrap: anywhere;">${escapeHTML(log.note)}</p>` : ''}
                     </div>
                     <div style="text-align: right;">
                         ${log.amount !== 0 ? `<div style="font-size: 13px; font-weight: 800; ${colorClass}" class="balance-text">${sign}${formatPHP(log.amount)}</div>` : ''}
@@ -2466,6 +2529,7 @@
             const amt = parseFloat(document.getElementById('txAmount').value);
             const accId = document.getElementById('txAccount').value;
             const cat = document.getElementById('txCategory').value;
+            const note = document.getElementById('txNote').value.trim();
 
             if (isNaN(amt) || amt <= 0) {
                 showToast('Enter valid amount');
@@ -2477,10 +2541,10 @@
 
             if (activeTxType === 'expense') {
                 acc.balance -= amt;
-                logHistory(`${acc.name} Expense`, amt, 'expense', cat, acc.id);
+                logHistory(`${acc.name} Expense`, amt, 'expense', cat, acc.id, note);
             } else {
                 acc.balance += amt;
-                logHistory(`${acc.name} Income`, amt, 'income', cat, acc.id);
+                logHistory(`${acc.name} Income`, amt, 'income', cat, acc.id, note);
             }
 
             if (pendingPayBillId !== null) {
@@ -2702,7 +2766,7 @@
             renderHistory();
         }
 
-        function logHistory(title, amount, type, category, accountId) {
+        function logHistory(title, amount, type, category, accountId, note = '') {
             const now = new Date();
             historyLogs.unshift({
                 id: Date.now(),
@@ -2710,6 +2774,7 @@
                 amount,
                 type,
                 category,
+                note: note || '',
                 date: now.toLocaleDateString([], { month: 'short', day: 'numeric' }),
                 time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 accountId
