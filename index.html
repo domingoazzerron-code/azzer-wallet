@@ -12,18 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Azzer Wallet">
-    <script>
-        try {
-            var t = localStorage.getItem("wallet_theme") || "system";
-            var resolved = t;
-            if (t === "system") {
-                resolved = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-            }
-            if (["light", "dark", "glass"].indexOf(resolved) > -1) {
-                document.documentElement.setAttribute("data-theme", resolved);
-            }
-        } catch(e) {}
-    </script>
+    <script>try{var t=localStorage.getItem("wallet_theme");if(["light","dark","glass"].indexOf(t)>-1)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -294,7 +283,6 @@
 
         .action-btns {
             display: flex;
-            align-items: center;
             gap: 8px;
         }
 
@@ -904,37 +892,32 @@
                     </div>
                 </div>
 
-                <div class="action-btns">
-                    <!-- Eye (Privacy) Button -->
-                    <button class="icon-btn" id="privacyBtn" onclick="togglePrivacy()" title="Toggle Privacy">
-                        <svg id="privacySvg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <div class="menu-wrap" id="menuWrap">
+                    <button class="icon-btn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true" aria-expanded="false">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
                     </button>
-
-                    <!-- Theme Button -->
-                    <button class="icon-btn" id="themeBtn" onclick="openModal('themeModal')" title="Choose Theme">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-                    </button>
-
-                    <!-- Menu Dropdown Wrap -->
-                    <div class="menu-wrap" id="menuWrap">
-                        <button class="icon-btn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true" aria-expanded="false">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
+                    <div class="dropdown" id="dropdownMenu" role="menu">
+                        <button class="dropdown-item" role="menuitem" onclick="menuAction(togglePrivacy)">
+                            <svg id="privacySvg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <span id="privacyLabel">Hide Balances</span>
                         </button>
-                        <div class="dropdown" id="dropdownMenu" role="menu">
-                            <button class="dropdown-item" role="menuitem" onclick="menuAction(exportCSV)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                <span>Export CSV</span>
-                            </button>
-                            <button class="dropdown-item" id="installItem" role="menuitem" hidden onclick="menuAction(installApp)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 8v6"/><path d="m9 11 3 3 3-3"/></svg>
-                                <span>Install App</span>
-                            </button>
-                            <div class="dropdown-sep"></div>
-                            <button class="dropdown-item danger" role="menuitem" onclick="menuAction(confirmReset)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                                <span>Reset Data</span>
-                            </button>
-                        </div>
+                        <button class="dropdown-item" role="menuitem" onclick="menuAction(() => openModal('themeModal'))">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                            <span>Theme</span>
+                        </button>
+                        <button class="dropdown-item" role="menuitem" onclick="menuAction(exportCSV)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span>Export CSV</span>
+                        </button>
+                        <button class="dropdown-item" id="installItem" role="menuitem" hidden onclick="menuAction(installApp)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 8v6"/><path d="m9 11 3 3 3-3"/></svg>
+                            <span>Install App</span>
+                        </button>
+                        <div class="dropdown-sep"></div>
+                        <button class="dropdown-item danger" role="menuitem" onclick="menuAction(confirmReset)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            <span>Reset Data</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1432,11 +1415,6 @@
                 <button onclick="closeModal('themeModal')" style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
             </div>
             <div class="theme-options">
-                <button class="theme-option" data-theme-opt="system" onclick="setTheme('system')">
-                    <span class="theme-swatch" style="background: linear-gradient(135deg, #1c1c1e 0%, #1c1c1e 50%, #eef2fa 50%, #eef2fa 100%);"></span>
-                    <span><div class="t-name">System Default</div><div class="t-desc">Gagayahin ang device/browser theme</div></span>
-                    <span class="theme-check">✓</span>
-                </button>
                 <button class="theme-option" data-theme-opt="light" onclick="setTheme('light')">
                     <span class="theme-swatch" style="background: linear-gradient(135deg, #cfe2ff 0%, #ffe0f0 55%, #d8f7ea 100%);"></span>
                     <span><div class="t-name">Light</div><div class="t-desc">Maliwanag at malinis</div></span>
@@ -1521,7 +1499,7 @@
             { id: 'bpi', name: 'BPI', balance: 34100.00, color: '#B30006', iconText: 'BP' }
         ];
 
-        const THEMES = ['system', 'light', 'dark', 'glass'];
+        const THEMES = ['light', 'dark', 'glass'];
         const THEME_COLORS = { light: '#eef2fa', dark: '#05070f', glass: '#0a1030' };
 
         let accounts = [];
@@ -1572,19 +1550,12 @@
             { id: 1, person: 'Mark', amount: 500, type: 'lent', settled: false }
         ];
 
-        let currentTheme = 'system';
+        let currentTheme = 'dark';
 
         // Initialize on Load
         window.addEventListener('DOMContentLoaded', () => {
             loadData();
             renderApp();
-
-            // Dynamic system color theme change listener
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                if (currentTheme === 'system') {
-                    applyTheme();
-                }
-            });
         });
 
         function loadData() {
@@ -1597,7 +1568,6 @@
                 const billsStored = SafeStorage.getItem('wallet_bills');
                 const debtsStored = SafeStorage.getItem('wallet_debts');
                 const catsStored = SafeStorage.getItem('wallet_categories');
-                const lastResetStored = SafeStorage.getItem('wallet_last_reset_month');
 
                 accounts = accStored ? JSON.parse(accStored) : JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
                 
@@ -1615,16 +1585,7 @@
                 if (debtsStored) debts = JSON.parse(debtsStored);
                 if (catsStored) customCategories = JSON.parse(catsStored);
 
-                // Automatic Monthly Reset for Bills
-                const currentMonthKey = new Date().toISOString().slice(0, 7);
-                if (lastResetStored !== currentMonthKey) {
-                    recurringBills.forEach(bill => {
-                        bill.paid = false;
-                    });
-                    SafeStorage.setItem('wallet_last_reset_month', currentMonthKey);
-                }
-
-                currentTheme = THEMES.includes(themeStored) ? themeStored : 'system';
+                currentTheme = THEMES.includes(themeStored) ? themeStored : 'dark';
                 applyTheme();
             } catch (e) {
                 accounts = JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
@@ -1662,13 +1623,9 @@
         }
 
         function applyTheme() {
-            let activeTheme = currentTheme;
-            if (currentTheme === 'system') {
-                activeTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-            }
-            document.documentElement.setAttribute('data-theme', activeTheme);
+            document.documentElement.setAttribute('data-theme', currentTheme);
             const meta = document.getElementById('themeColorMeta');
-            if (meta) meta.setAttribute('content', THEME_COLORS[activeTheme] || '#05070f');
+            if (meta) meta.setAttribute('content', THEME_COLORS[currentTheme]);
             document.querySelectorAll('.theme-option').forEach(b =>
                 b.classList.toggle('active', b.dataset.themeOpt === currentTheme));
         }
@@ -1777,9 +1734,7 @@
             const toAcc = accounts.find(a => a.id === log.toId);
             const revertible = ((log.type === 'income' || log.type === 'expense') && acc) || (log.type === 'transfer' && acc && toAcc);
             let msg = `Delete "${log.title}"?`;
-            if (revertible) msg += `
-
-${formatPHP(log.amount)} will be reversed in your balance.`;
+            if (revertible) msg += `\n\n${formatPHP(log.amount)} will be reversed in your balance.`;
             if (!confirm(msg)) { closeOpenRow(); return; }
 
             if (log.type === 'expense' && acc) acc.balance += log.amount;
@@ -2024,14 +1979,12 @@ ${formatPHP(log.amount)} will be reversed in your balance.`;
                 return;
             }
 
-            let csvContent = 'data:text/csv;charset=utf-8,Title,Amount,Type,Category,Date,Time,Account
-';
+            let csvContent = 'data:text/csv;charset=utf-8,Title,Amount,Type,Category,Date,Time,Account\n';
 
             historyLogs.forEach(l => {
                 const accObj = accounts.find(a => a.id === l.accountId);
                 const accName = accObj ? accObj.name : 'All';
-                csvContent += `"${l.title}",${l.amount},"${l.type}","${l.category || ''}","${l.date || ''}","${l.time || ''}","${accName}"
-`;
+                csvContent += `"${l.title}",${l.amount},"${l.type}","${l.category || ''}","${l.date || ''}","${l.time || ''}","${accName}"\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -2409,6 +2362,8 @@ ${formatPHP(log.amount)} will be reversed in your balance.`;
         function applyPrivacy() {
             const balances = document.querySelectorAll('.balance-text');
             const svg = document.getElementById('privacySvg');
+            const pl = document.getElementById('privacyLabel');
+            if (pl) pl.textContent = isPrivacyHidden ? 'Show Balances' : 'Hide Balances';
             if (isPrivacyHidden) {
                 balances.forEach(el => el.classList.add('blur-balance'));
                 svg.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
