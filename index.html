@@ -820,6 +820,60 @@
         .swipe-row.dragging .swipe-act { transition: none; }
         .swipe-act.edit { left: 0; background: var(--primary); }
         .swipe-act.del { right: 0; background: var(--rose); }
+
+        /* ===== Smooth motion ===== */
+        :root { --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-ios: cubic-bezier(0.32, 0.72, 0, 1); --spring: cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        @keyframes riseIn { from { opacity: 0; transform: translateY(14px) scale(0.985); } }
+        header > * { animation: riseIn 0.6s var(--ease-out) backwards; }
+        header > *:nth-child(2) { animation-delay: 0.05s; }
+        header > *:nth-child(3) { animation-delay: 0.1s; }
+        header > *:nth-child(4) { animation-delay: 0.15s; }
+        .tab-pane.active > * { animation: riseIn 0.55s var(--ease-out) backwards; }
+        .tab-pane.active > *:nth-child(2) { animation-delay: 0.05s; }
+        .tab-pane.active > *:nth-child(3) { animation-delay: 0.10s; }
+        .tab-pane.active > *:nth-child(4) { animation-delay: 0.15s; }
+        .tab-pane.active > *:nth-child(5) { animation-delay: 0.20s; }
+
+        .glass-card { transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease, background-color 0.3s ease, border-color 0.3s ease; }
+
+        /* sliding tab indicator */
+        .tab-nav { position: relative; gap: 0; }
+        .tab-indicator { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / 4);
+            border-radius: 999px; background: var(--seg-active);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14), inset 1px 1px 0 rgba(255, 255, 255, 0.35);
+            transform: translateX(calc(var(--tab-i, 0) * 100%)); transition: transform 0.45s var(--ease-ios); }
+        .tab-btn { position: relative; z-index: 1; }
+        .tab-btn.active { background: transparent; box-shadow: none; color: var(--text-main); }
+        .tab-btn { transition: color 0.3s ease; }
+
+        /* springy press feedback */
+        .btn-action, .icon-btn, .filter-btn, .btn-submit, .bill-pay-btn, .theme-option, .account-card {
+            transition: transform 0.4s var(--spring), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.3s ease, color 0.25s ease; }
+        .btn-action:active, .icon-btn:active, .filter-btn:active, .btn-submit:active, .bill-pay-btn:active { transform: scale(0.94); transition-duration: 0.12s; }
+        .account-card:active { transform: scale(0.975); transition-duration: 0.12s; }
+        @media (hover: hover) { .account-card:hover { transform: translateY(-2px); } }
+
+        /* iOS sheet curve */
+        .modal-overlay { transition: opacity 0.35s ease; }
+        .modal-content { transition: transform 0.5s var(--ease-ios); }
+        .modal-overlay:not(.open) .modal-content { transition-duration: 0.35s; }
+        #toast { transition: opacity 0.3s ease, transform 0.5s var(--spring); }
+
+        /* delete row collapse */
+        .swipe-row.removing { height: 0 !important; opacity: 0; margin-bottom: -8px;
+            transition: height 0.32s var(--ease-out), opacity 0.2s ease, margin 0.32s var(--ease-out); }
+
+        /* distribution bar segments */
+        .distribution-bar > div { transition: width 0.7s var(--ease-out), background-color 0.4s ease; }
+
+        /* theme crossfade */
+        html.theme-anim *, html.theme-anim *::before { transition: background-color 0.45s ease, color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease !important; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.45s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; }
+        }
     </style>
 </head>
 <body>
@@ -870,6 +924,7 @@
 
             <!-- iOS Tab Navigation Bar -->
             <div class="tab-nav">
+                <span class="tab-indicator"></span>
                 <button class="tab-btn active" onclick="switchTab('dashboard', this)">Dashboard</button>
                 <button class="tab-btn" onclick="switchTab('accounts', this)">Accounts</button>
                 <button class="tab-btn" onclick="switchTab('analytics', this)">Analytics</button>
@@ -1463,6 +1518,8 @@
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
             btn.classList.add('active');
+            const idx = [...document.querySelectorAll('.tab-btn')].indexOf(btn);
+            document.querySelector('.tab-nav').style.setProperty('--tab-i', idx);
         }
 
         // Default Categories State
@@ -1551,8 +1608,15 @@
 
         function setTheme(name) {
             if (!THEMES.includes(name)) return;
-            currentTheme = name;
-            applyTheme();
+            const run = () => { currentTheme = name; applyTheme(); };
+            if (document.startViewTransition && !reducedMotion()) {
+                document.startViewTransition(run);
+            } else {
+                const root = document.documentElement;
+                root.classList.add('theme-anim');
+                run();
+                setTimeout(() => root.classList.remove('theme-anim'), 600);
+            }
             saveData();
             showToast(`Theme: ${name === 'glass' ? 'LIQUID GLASS' : name.toUpperCase()}`);
             closeModal('themeModal');
@@ -1581,6 +1645,24 @@
             if (!e.target.closest('#menuWrap')) closeMenu();
         });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+        // ===== Motion helpers =====
+        const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function animateNumber(el, to) {
+            const from = el._val || 0;
+            el._val = to;
+            if (el._raf) cancelAnimationFrame(el._raf);
+            if (reducedMotion() || from === to) { el.textContent = formatPHP(to); return; }
+            const t0 = performance.now(), dur = 700;
+            const step = now => {
+                const t = Math.min(1, (now - t0) / dur);
+                const e = 1 - Math.pow(1 - t, 4);
+                el.textContent = formatPHP(from + (to - from) * e);
+                if (t < 1) el._raf = requestAnimationFrame(step);
+            };
+            el._raf = requestAnimationFrame(step);
+        }
 
         // ===== Swipe to Edit / Delete =====
         const SWIPE_REVEAL = 88;
@@ -1659,10 +1741,19 @@
             else if (log.type === 'income' && acc) acc.balance -= log.amount;
             else if (log.type === 'transfer' && acc && toAcc) { acc.balance += log.amount; toAcc.balance -= log.amount; }
 
-            historyLogs = historyLogs.filter(l => l.id !== id);
-            saveData();
-            renderApp();
-            showToast('Transaction deleted');
+            const finish = () => {
+                historyLogs = historyLogs.filter(l => l.id !== id);
+                saveData();
+                renderApp();
+                showToast('Transaction deleted');
+            };
+            const rowEl = document.querySelector(`.swipe-row[data-id="${id}"]`);
+            if (rowEl && !reducedMotion()) {
+                rowEl.style.height = rowEl.offsetHeight + 'px';
+                rowEl.getBoundingClientRect();
+                rowEl.classList.add('removing');
+                setTimeout(finish, 320);
+            } else finish();
         }
 
         function openEditTx(id) {
@@ -2140,20 +2231,27 @@
 
         function renderSummary() {
             const total = accounts.reduce((acc, item) => acc + item.balance, 0);
-            document.getElementById('totalBalance').textContent = formatPHP(total);
+            animateNumber(document.getElementById('totalBalance'), total);
 
             const bar = document.getElementById('distributionBar');
-            bar.innerHTML = '';
+            const keep = new Set();
             accounts.forEach(acc => {
                 const pct = total > 0 ? (acc.balance / total) * 100 : 0;
-                if (pct > 0) {
-                    const seg = document.createElement('div');
-                    seg.style.width = `${pct}%`;
-                    seg.style.background = acc.color;
+                if (pct <= 0) return;
+                keep.add(acc.id);
+                let seg = [...bar.children].find(c => c.dataset.id === acc.id);
+                if (!seg) {
+                    seg = document.createElement('div');
+                    seg.dataset.id = acc.id;
                     seg.style.height = '100%';
+                    seg.style.width = '0%';
                     bar.appendChild(seg);
+                    seg.getBoundingClientRect();
                 }
+                seg.style.background = acc.color;
+                seg.style.width = `${pct}%`;
             });
+            [...bar.children].forEach(c => { if (!keep.has(c.dataset.id)) c.remove(); });
         }
 
         function renderAccounts() {
@@ -2246,6 +2344,7 @@
                 const canEdit = log.type === 'income' || log.type === 'expense';
                 const row = document.createElement('div');
                 row.className = 'swipe-row';
+                row.dataset.id = log.id;
                 row.innerHTML = (canEdit ? '<button class="swipe-act edit">Edit</button>' : '') + '<button class="swipe-act del">Delete</button>';
                 row.appendChild(item);
                 container.appendChild(row);
