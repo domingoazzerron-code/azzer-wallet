@@ -1164,6 +1164,11 @@
                 </div>
             </div>
 
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer;">
+                <input type="checkbox" id="editAccSavingsInput" style="width: 20px; height: 20px; accent-color: var(--primary); flex-shrink: 0;">
+                <span style="font-size: 13px; font-weight: 600;">Savings account <span style="font-weight: 500; color: var(--text-muted);">(counts toward Savings Goal)</span></span>
+            </label>
+
             <button class="btn-submit" onclick="saveSingleBalance()">Save Changes</button>
             <button id="deleteAccBtn" onclick="deleteAccount()" style="width: 100%; height: 44px; border-radius: 16px; background: rgba(255,69,58,0.15); color: var(--rose); border: 1px solid rgba(255,69,58,0.3); font-weight: 700; font-size: 13px; cursor: pointer; margin-top: -6px;">Delete Account</button>
         </div>
@@ -1198,6 +1203,11 @@
                     <input type="color" id="addAccColorInput" class="form-input" value="#0a84ff" style="height: 48px; padding: 4px; cursor: pointer;">
                 </div>
             </div>
+
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer;">
+                <input type="checkbox" id="addAccSavingsInput" style="width: 20px; height: 20px; accent-color: var(--primary); flex-shrink: 0;">
+                <span style="font-size: 13px; font-weight: 600;">Savings account <span style="font-weight: 500; color: var(--text-muted);">(counts toward Savings Goal)</span></span>
+            </label>
 
             <button class="btn-submit" onclick="submitNewAccount()">Create Account</button>
         </div>
@@ -1386,6 +1396,28 @@
         </div>
     </div>
 
+    <!-- Settle Debt Modal -->
+    <div class="modal-overlay" id="settleDebtModal">
+        <div style="position: absolute; inset: 0;" onclick="closeModal('settleDebtModal')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="settleDebtTitle" style="font-size: 16px; font-weight: 700;">Settle</h3>
+                <button onclick="closeModal('settleDebtModal')" style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+
+            <p id="settleDebtDesc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;"></p>
+
+            <div class="form-group">
+                <label class="form-label" id="settleDebtLabel">Account</label>
+                <select id="settleDebtAccount" class="form-select" onchange="updateSettlePreview()"></select>
+            </div>
+
+            <p id="settleDebtPreview" class="balance-text" style="font-size: 12px; font-weight: 600; margin-bottom: 14px;"></p>
+
+            <button class="btn-submit" onclick="confirmSettleDebt()">Confirm</button>
+        </div>
+    </div>
+
     <!-- Edit Transaction Modal -->
     <div class="modal-overlay" id="editTxModal">
         <div style="position: absolute; inset: 0;" onclick="closeModal('editTxModal')"></div>
@@ -1495,7 +1527,7 @@
             { id: 'gcash', name: 'GCash', balance: 2500.00, color: '#005CE6', iconText: 'GC' },
             { id: 'maribank', name: 'MariBank', balance: 15400.50, color: '#FF5722', iconText: 'MB' },
             { id: 'gotyme', name: 'GoTyme', balance: 8200.75, color: '#00D2C8', iconText: 'GT' },
-            { id: 'gotyme_savings', name: 'GoTyme Savings', balance: 10000.00, color: '#00A89E', iconText: 'GS' },
+            { id: 'gotyme_savings', name: 'GoTyme Savings', balance: 10000.00, color: '#00A89E', iconText: 'GS', isSavings: true },
             { id: 'bpi', name: 'BPI', balance: 34100.00, color: '#B30006', iconText: 'BP' }
         ];
 
@@ -1511,6 +1543,44 @@
         let currentAccFilter = 'all';
         let currentDateFilter = 'all';
 
+        const clone = o => JSON.parse(JSON.stringify(o));
+
+        // Money is kept in whole centavos to avoid floating-point drift (0.1 + 0.2 = 0.30000000000000004)
+        const round2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+        // #8: spending that would push an account below zero asks for confirmation (returns true = go ahead)
+        function confirmOverspend(acc, amt) {
+            const after = round2(acc.balance - amt);
+            if (after >= 0) return true;
+            return confirm(`${acc.name} only has ${formatPHP(acc.balance)}.\n\nThis will leave it at ${formatPHP(after)}. Continue?`);
+        }
+
+        const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+        // #7: a bill is "paid" only for the month it was paid in; a new month resets it
+        function rollBills() {
+            const key = monthKey();
+            let changed = false;
+            recurringBills.forEach(b => {
+                if (b.paid && b.paidMonth !== key) { b.paid = false; delete b.paidMonth; changed = true; }
+            });
+            return changed;
+        }
+
+        // Unique, always-increasing ids (Date.now() alone can repeat within the same millisecond)
+        let lastUid = 0;
+        function uid() {
+            let t = Date.now();
+            if (t <= lastUid) t = lastUid + 1;
+            lastUid = t;
+            return t;
+        }
+
+        // History: keep up to HISTORY_LIMIT logs in storage; show HISTORY_PAGE at a time
+        const HISTORY_LIMIT = 10000;
+        const HISTORY_PAGE = 50;
+        let historyVisible = HISTORY_PAGE;
+
         // Tab Navigation Switcher
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -1523,7 +1593,7 @@
         }
 
         // Default Categories State
-        let customCategories = [
+        const DEFAULT_CATEGORIES = [
             { name: 'Food & Dining', emoji: '🍔' },
             { name: 'Bills & Utilities', emoji: '⚡' },
             { name: 'Shopping', emoji: '🛍️' },
@@ -1532,27 +1602,34 @@
             { name: 'Debt/Loan', emoji: '🤝' },
             { name: 'General', emoji: '🏷️' }
         ];
+        let customCategories = clone(DEFAULT_CATEGORIES);
 
         // Bills State
-        let recurringBills = [
+        const DEFAULT_BILLS = [
             { id: 1, name: 'Internet / Fiber', amount: 1500, dueDay: 15, paid: false },
             { id: 2, name: 'Spotify Premium', amount: 149, dueDay: 25, paid: false }
         ];
+        let recurringBills = clone(DEFAULT_BILLS);
 
         // Goals State
-        let monthlyGoals = {
+        const DEFAULT_GOALS = {
             spendingTarget: 20000,
             savingsTarget: 10000
         };
+        let monthlyGoals = clone(DEFAULT_GOALS);
 
         // Debts / IOU State
-        let debts = [
+        const DEFAULT_DEBTS = [
             { id: 1, person: 'Mark', amount: 500, type: 'lent', settled: false }
         ];
+        let debts = clone(DEFAULT_DEBTS);
 
         let currentTheme = 'dark';
 
         // Initialize on Load
+        // Coming back to the app on a new day/month: refresh so monthly bills reset and totals are current
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && accounts.length) renderApp(); });
+
         window.addEventListener('DOMContentLoaded', () => {
             loadData();
             renderApp();
@@ -1571,12 +1648,13 @@
 
                 accounts = accStored ? JSON.parse(accStored) : JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
                 
-                if (!accounts.some(a => a.id === 'gotyme_savings')) {
-                    accounts.splice(3, 0, { id: 'gotyme_savings', name: 'GoTyme Savings', balance: 10000.00, color: '#00A89E', iconText: 'GS' });
-                }
+                // Repair floating-point drift already stored in balances
+                accounts.forEach(a => { a.balance = round2(a.balance); });
+                // Older data has no savings flag: set it once from the name, after that the checkbox decides
+                accounts.forEach(a => { if (typeof a.isSavings !== 'boolean') a.isSavings = /savings/i.test(a.name); });
 
                 historyLogs = histStored ? JSON.parse(histStored) : [
-                    { id: Date.now(), title: 'Wallet Initialized', amount: 0, type: 'info', category: 'General', date: 'Today', time: '12:00 PM', accountId: 'all' }
+                    { id: uid(), title: 'Wallet Initialized', amount: 0, type: 'info', category: 'General', date: 'Today', time: '12:00 PM', accountId: 'all' }
                 ];
                 isPrivacyHidden = privStored === 'true';
 
@@ -1584,6 +1662,34 @@
                 if (billsStored) recurringBills = JSON.parse(billsStored);
                 if (debtsStored) debts = JSON.parse(debtsStored);
                 if (catsStored) customCategories = JSON.parse(catsStored);
+
+                historyLogs.forEach(l => { if (typeof l.ts !== 'number') l.ts = logTs(l); });
+
+                // Older transfers have no toId: recover it from the "From ➔ To" title when it is unambiguous
+                historyLogs.forEach(l => {
+                    if (l.type !== 'transfer' || l.toId) return;
+                    const parts = String(l.title || '').split(' ➔ ');
+                    if (parts.length !== 2) return;
+                    const from = accounts.filter(a => a.name === parts[0]);
+                    const to = accounts.filter(a => a.name === parts[1]);
+                    if (from.length === 1 && to.length === 1 && (!l.accountId || l.accountId === from[0].id)) {
+                        l.accountId = from[0].id;
+                        l.toId = to[0].id;
+                    }
+                });
+
+                // Bills marked paid by older versions have no month: treat them as paid this month, then apply the monthly reset
+                recurringBills.forEach(b => { if (b.paid && !b.paidMonth) b.paidMonth = monthKey(); });
+                rollBills();
+
+                // Make ids unique (repairs duplicates from older versions)
+                [historyLogs, recurringBills, debts].forEach(list => list.forEach(x => {
+                    if (typeof x.id === 'number' && x.id > lastUid) lastUid = x.id;
+                }));
+                [historyLogs, recurringBills, debts].forEach(list => {
+                    const seen = new Set();
+                    list.forEach(x => { if (seen.has(x.id)) x.id = uid(); seen.add(x.id); });
+                });
 
                 currentTheme = THEMES.includes(themeStored) ? themeStored : 'dark';
                 applyTheme();
@@ -1735,11 +1841,15 @@
             const revertible = ((log.type === 'income' || log.type === 'expense') && acc) || (log.type === 'transfer' && acc && toAcc);
             let msg = `Delete "${log.title}"?`;
             if (revertible) msg += `\n\n${formatPHP(log.amount)} will be reversed in your balance.`;
+            else if (['income', 'expense', 'transfer'].includes(log.type)) msg += `\n\nNote: the account for this entry no longer exists (or the transfer details are missing), so your balances will NOT change.`;
+            const goesNegative = revertible && ((log.type === 'income' && round2(acc.balance - log.amount) < 0) ||
+                (log.type === 'transfer' && round2(toAcc.balance - log.amount) < 0));
+            if (goesNegative) msg += `\n\nWarning: this will leave an account with a negative balance.`;
             if (!confirm(msg)) { closeOpenRow(); return; }
 
-            if (log.type === 'expense' && acc) acc.balance += log.amount;
-            else if (log.type === 'income' && acc) acc.balance -= log.amount;
-            else if (log.type === 'transfer' && acc && toAcc) { acc.balance += log.amount; toAcc.balance -= log.amount; }
+            if (log.type === 'expense' && acc) acc.balance = round2(acc.balance + log.amount);
+            else if (log.type === 'income' && acc) acc.balance = round2(acc.balance - log.amount);
+            else if (log.type === 'transfer' && acc && toAcc) { acc.balance = round2(acc.balance + log.amount); toAcc.balance = round2(toAcc.balance - log.amount); }
 
             const finish = () => {
                 historyLogs = historyLogs.filter(l => l.id !== id);
@@ -1764,9 +1874,9 @@
             document.getElementById('editTxAmount').value = log.amount;
             const sel = document.getElementById('editTxCategory');
             sel.innerHTML = '';
-            customCategories.forEach(c => { sel.innerHTML += `<option value="${c.name}">${c.emoji} ${c.name}</option>`; });
+            customCategories.forEach(c => { sel.innerHTML += `<option value="${esc(c.name)}">${esc(c.emoji)} ${esc(c.name)}</option>`; });
             const cat = log.category || 'General';
-            if (!customCategories.some(c => c.name === cat)) sel.innerHTML += `<option value="${cat}">${cat}</option>`;
+            if (!customCategories.some(c => c.name === cat)) sel.innerHTML += `<option value="${esc(cat)}">${esc(cat)}</option>`;
             sel.value = cat;
             openModal('editTxModal');
         }
@@ -1774,14 +1884,15 @@
         function saveEditTx() {
             const log = historyLogs.find(l => l.id === activeEditTxId);
             if (!log) return;
-            const amt = parseFloat(document.getElementById('editTxAmount').value);
+            const amt = round2(parseFloat(document.getElementById('editTxAmount').value));
             if (isNaN(amt) || amt <= 0) { showToast('Enter valid amount'); return; }
 
             const acc = accounts.find(a => a.id === log.accountId);
             if (acc) {
-                const diff = amt - log.amount;
-                if (log.type === 'expense') acc.balance -= diff;
-                else acc.balance += diff;
+                const diff = round2(amt - log.amount);
+                if (log.type === 'expense' && diff > 0 && !confirmOverspend(acc, diff)) return;
+                if (log.type === 'expense') acc.balance = round2(acc.balance - diff);
+                else acc.balance = round2(acc.balance + diff);
             }
             log.amount = amt;
             log.category = document.getElementById('editTxCategory').value;
@@ -1818,10 +1929,42 @@
         }
 
         function formatPHP(amount) {
-            return '₱' + Number(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const n = round2(amount);
+            return (n < 0 ? '-' : '') + '₱' + Math.abs(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Escape user-entered text before it goes into innerHTML templates
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, ch =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
+
+        // ===== Log dates: every log carries a real timestamp (ts, in ms) =====
+        // Older logs only have a "Nov 5" string; their id was Date.now() at creation, so ts = id.
+        function logTs(l) {
+            if (typeof l.ts === 'number' && isFinite(l.ts)) return l.ts;
+            if (typeof l.id === 'number' && l.id > 1e12) return l.id;
+            if (!/^[A-Za-z]{3,}\.? \d{1,2}$/.test(l.date || '')) return 0;
+            const guess = Date.parse(`${l.date} ${new Date().getFullYear()}`);
+            return isFinite(guess) ? guess : 0;
+        }
+        function isThisMonth(l, now = new Date()) {
+            const d = new Date(logTs(l));
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        }
+        function isToday(l, now = new Date()) {
+            return isThisMonth(l, now) && new Date(logTs(l)).getDate() === now.getDate();
+        }
+        function logDateLabel(l) {
+            const d = new Date(logTs(l));
+            if (!logTs(l)) return l.date || '';
+            const opts = { month: 'short', day: 'numeric' };
+            if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+            return d.toLocaleDateString([], opts);
         }
 
         function renderApp() {
+            if (rollBills()) saveData();
             populateAccFilterSelect();
             populateCategorySelect();
             renderSummary();
@@ -1837,15 +1980,12 @@
 
         // Render Cash Flow Monthly Card
         function renderCashFlow() {
-            const now = new Date();
-            const currentMonthStr = now.toLocaleDateString([], { month: 'short' });
-
             const monthlyIncome = historyLogs
-                .filter(l => l.type === 'income' && (l.date || '').includes(currentMonthStr))
+                .filter(l => l.type === 'income' && isThisMonth(l))
                 .reduce((sum, l) => sum + l.amount, 0);
 
             const monthlyExpense = historyLogs
-                .filter(l => l.type === 'expense' && (l.date || '').includes(currentMonthStr))
+                .filter(l => l.type === 'expense' && isThisMonth(l))
                 .reduce((sum, l) => sum + l.amount, 0);
 
             const net = monthlyIncome - monthlyExpense;
@@ -1865,7 +2005,7 @@
             const currentVal = sel.value;
             sel.innerHTML = '';
             customCategories.forEach(c => {
-                sel.innerHTML += `<option value="${c.name}">${c.emoji} ${c.name}</option>`;
+                sel.innerHTML += `<option value="${esc(c.name)}">${esc(c.emoji)} ${esc(c.name)}</option>`;
             });
             if (currentVal) sel.value = currentVal;
         }
@@ -1876,7 +2016,7 @@
             customCategories.forEach((c, index) => {
                 list.innerHTML += `
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px;">
-                        <span style="font-size: 13px; font-weight: 600;">${c.emoji} ${c.name}</span>
+                        <span style="font-size: 13px; font-weight: 600;">${esc(c.emoji)} ${esc(c.name)}</span>
                         ${customCategories.length > 1 ? `<button onclick="deleteCategory(${index})" style="background: none; border: none; color: var(--rose); cursor: pointer; font-size: 11px; font-weight: 700;">Delete</button>` : ''}
                     </div>
                 `;
@@ -1928,7 +2068,7 @@
                     <div class="bill-item" style="${isSettled ? 'opacity: 0.65;' : ''}">
                         <div>
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <h5 style="font-size: 13px; font-weight: 700; ${isSettled ? 'text-decoration: line-through;' : ''}">${d.person}</h5>
+                                <h5 style="font-size: 13px; font-weight: 700; ${isSettled ? 'text-decoration: line-through;' : ''}">${esc(d.person)}</h5>
                                 <span style="font-size: 9px; font-weight: 800; background: ${isLent ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)'}; color: ${isLent ? 'var(--emerald)' : 'var(--rose)'}; border: 1px solid ${isLent ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'}; padding: 1px 6px; border-radius: 6px; text-transform: uppercase;">${isLent ? 'Lent Out' : 'I Owe'}</span>
                             </div>
                             <p style="font-size: 10px; color: var(--text-muted);">${isSettled ? 'Settled' : (isLent ? 'Awaiting payment' : 'Need to pay back')}</p>
@@ -1936,7 +2076,7 @@
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <span class="balance-text" style="font-size: 13px; font-weight: 800;">${formatPHP(d.amount)}</span>
                             ${!isSettled 
-                                ? `<button class="bill-pay-btn" onclick="settleDebt(${d.id})" style="background: var(--emerald);">Settle</button>`
+                                ? `<button class="bill-pay-btn" onclick="openSettleDebt(${d.id})" style="background: var(--emerald);">Settle</button>`
                                 : `<span style="font-size: 11px; font-weight: 700; color: var(--emerald);">✓ Done</span>`
                             }
                             <button onclick="deleteDebt(${d.id})" title="Delete Entry" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;">
@@ -1948,14 +2088,77 @@
             });
         }
 
-        function settleDebt(debtId) {
+        // Settling opens a small picker: which account did the money go into / come out of?
+        let activeSettleDebtId = null;
+
+        function openSettleDebt(debtId) {
             const d = debts.find(item => item.id === debtId);
-            if (!d) return;
+            if (!d || d.settled) return;
+            activeSettleDebtId = debtId;
+            const lent = d.type === 'lent';
+            const amt = formatPHP(d.amount);
+
+            document.getElementById('settleDebtTitle').textContent = lent ? `${d.person} paid you back` : `Pay back ${d.person}`;
+            document.getElementById('settleDebtDesc').textContent = lent
+                ? `${amt} is coming back to you. Which account did it go into?`
+                : `You owe ${amt}. Which account are you paying from?`;
+            document.getElementById('settleDebtLabel').textContent = lent ? 'Received in' : 'Paid from';
+
+            const sel = document.getElementById('settleDebtAccount');
+            sel.innerHTML = '';
+            accounts.forEach(a => {
+                sel.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)} (${formatPHP(a.balance)})</option>`;
+            });
+            sel.innerHTML += `<option value="">Just mark as settled (don't change balances)</option>`;
+            sel.value = accounts.some(a => a.id === d.accountId) ? d.accountId : (accounts[0] ? accounts[0].id : '');
+
+            updateSettlePreview();
+            openModal('settleDebtModal');
+        }
+
+        function updateSettlePreview() {
+            const d = debts.find(item => item.id === activeSettleDebtId);
+            const out = document.getElementById('settleDebtPreview');
+            if (!d) { out.textContent = ''; return; }
+            const acc = accounts.find(a => a.id === document.getElementById('settleDebtAccount').value);
+            if (!acc) { out.textContent = 'Your balances will not change.'; }
+            else {
+                const after = round2(acc.balance + (d.type === 'lent' ? d.amount : -d.amount));
+                out.textContent = `${acc.name}: ${formatPHP(acc.balance)} → ${formatPHP(after)}`;
+            }
+            applyPrivacy();
+        }
+
+        function confirmSettleDebt() {
+            settleDebt(activeSettleDebtId, document.getElementById('settleDebtAccount').value);
+        }
+
+        // accId = account the money moved through; '' = just mark as settled
+        function settleDebt(debtId, accId) {
+            const d = debts.find(item => item.id === debtId);
+            if (!d || d.settled) return;
+
+            const acc = accounts.find(a => a.id === accId);
+            const lent = d.type === 'lent';
+
+            if (acc) {
+                if (lent) {
+                    acc.balance = round2(acc.balance + d.amount);
+                    logHistory(`${d.person} paid back`, d.amount, 'income', 'Debt/Loan', acc.id);
+                } else {
+                    if (!confirmOverspend(acc, d.amount)) return;
+                    acc.balance = round2(acc.balance - d.amount);
+                    logHistory(`Paid back ${d.person}`, d.amount, 'expense', 'Debt/Loan', acc.id);
+                }
+                d.settledAccountId = acc.id;
+            }
 
             d.settled = true;
+            d.settledAt = Date.now();
             saveData();
-            renderDebts();
-            showToast(`Settled record for ${d.person}`);
+            renderApp();
+            closeModal('settleDebtModal');
+            showToast(acc ? `Settled ${d.person} & balance updated` : `Settled record for ${d.person}`);
         }
 
         function deleteDebt(debtId) {
@@ -1973,27 +2176,48 @@
         }
 
         // Export CSV
+        // One CSV cell: always quoted, inner quotes doubled, and text that starts with = + - @ is
+        // prefixed with ' so Excel/Sheets never run it as a formula.
+        function csvCell(v) {
+            let t = String(v ?? '');
+            if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+            return '"' + t.replace(/"/g, '""') + '"';
+        }
+
+        function localDateStr(ts) {
+            const d = new Date(ts);
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        }
+
         function exportCSV() {
             if (historyLogs.length === 0) {
                 showToast('No history data to export');
                 return;
             }
 
-            let csvContent = 'data:text/csv;charset=utf-8,Title,Amount,Type,Category,Date,Time,Account\n';
-
+            const rows = [['Title', 'Amount', 'Type', 'Category', 'Date', 'Time', 'Account', 'Full Date', 'Note']];
             historyLogs.forEach(l => {
                 const accObj = accounts.find(a => a.id === l.accountId);
-                const accName = accObj ? accObj.name : 'All';
-                csvContent += `"${l.title}",${l.amount},"${l.type}","${l.category || ''}","${l.date || ''}","${l.time || ''}","${accName}"\n`;
+                const ts = logTs(l);
+                rows.push([
+                    l.title, l.amount, l.type, l.category || '', l.date || '', l.time || '',
+                    accObj ? accObj.name : 'All', ts ? localDateStr(ts) : '', l.note || ''
+                ]);
             });
+            // Amount stays a plain number (not quoted text) so spreadsheets can sum it
+            const csv = rows.map((r, i) => r.map((c, k) => (i > 0 && k === 1) ? String(Number(c) || 0) : csvCell(c)).join(',')).join('\r\n');
 
-            const encodedUri = encodeURI(csvContent);
+            // BOM so Excel reads UTF-8 correctly (₱, ➔, emoji); Blob avoids data-URI problems with # and size
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', encodedUri);
-            link.setAttribute('download', `wallet_history_${new Date().toISOString().slice(0,10)}.csv`);
+            link.href = url;
+            link.download = `wallet_history_${localDateStr(Date.now())}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
             showToast('CSV Exported');
         }
 
@@ -2039,7 +2263,7 @@
                     list.innerHTML += `
                         <div class="category-row">
                             <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600;">
-                                <span>${cat}</span>
+                                <span>${esc(cat)}</span>
                                 <span>${formatPHP(amount)} (${pct}%)</span>
                             </div>
                             <div class="progress-bar-bg" style="height: 6px;">
@@ -2066,7 +2290,7 @@
                     <div class="bill-item" style="${isPaid ? 'opacity: 0.75;' : ''}">
                         <div>
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <h5 style="font-size: 13px; font-weight: 700; ${isPaid ? 'text-decoration: line-through;' : ''}">${bill.name}</h5>
+                                <h5 style="font-size: 13px; font-weight: 700; ${isPaid ? 'text-decoration: line-through;' : ''}">${esc(bill.name)}</h5>
                                 ${isPaid ? '<span style="font-size: 9px; font-weight: 800; background: rgba(16,185,129,0.15); color: var(--emerald); border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; border-radius: 6px; text-transform: uppercase;">Paid</span>' : ''}
                             </div>
                             <p style="font-size: 10px; color: var(--text-muted);">Due on day ${bill.dueDay} of every month</p>
@@ -2136,7 +2360,7 @@
                 return;
             }
 
-            recurringBills.push({ id: Date.now(), name, amount: amt, dueDay: day, paid: false });
+            recurringBills.push({ id: uid(), name, amount: amt, dueDay: day, paid: false });
             saveData();
             renderBills();
             closeModal('addBillModal');
@@ -2166,6 +2390,7 @@
             const bill = recurringBills.find(b => b.id === billId);
             if (bill) {
                 bill.paid = false;
+                delete bill.paidMonth;
                 saveData();
                 renderBills();
                 showToast(`Marked ${bill.name} as unpaid`);
@@ -2185,7 +2410,7 @@
             const currentVal = sel.value || 'all';
             sel.innerHTML = '<option value="all">All Accounts</option>';
             accounts.forEach(a => {
-                sel.innerHTML += `<option value="${a.id}">${a.name}</option>`;
+                sel.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)}</option>`;
             });
             sel.value = currentVal;
         }
@@ -2197,12 +2422,19 @@
 
         function renderGoals() {
             const totalExpenses = historyLogs
-                .filter(l => l.type === 'expense')
+                .filter(l => l.type === 'expense' && isThisMonth(l))
                 .reduce((sum, l) => sum + l.amount, 0);
 
-            const totalSavingsDeposits = historyLogs
-                .filter(l => l.type === 'income' || (l.type === 'transfer' && l.title.includes('Savings')))
-                .reduce((sum, l) => sum + l.amount, 0);
+            // Net saved this month = money into savings accounts minus money out (transfers between two savings accounts cancel out)
+            const isSavingsId = id => { const a = accounts.find(x => x.id === id); return !!a && a.isSavings === true; };
+            const totalSavingsDeposits = round2(historyLogs
+                .filter(l => isThisMonth(l))
+                .reduce((sum, l) => {
+                    if (l.type === 'income' && isSavingsId(l.accountId)) return sum + l.amount;
+                    if (l.type === 'expense' && isSavingsId(l.accountId)) return sum - l.amount;
+                    if (l.type === 'transfer') return sum + (isSavingsId(l.toId) ? l.amount : 0) - (isSavingsId(l.accountId) ? l.amount : 0);
+                    return sum;
+                }, 0));
 
             const spendPct = monthlyGoals.spendingTarget > 0 ? Math.min((totalExpenses / monthlyGoals.spendingTarget) * 100, 100) : 0;
             document.getElementById('spendGoalStatus').textContent = `${formatPHP(totalExpenses)} / ${formatPHP(monthlyGoals.spendingTarget)}`;
@@ -2210,8 +2442,8 @@
             spendBar.style.width = `${spendPct}%`;
             spendBar.style.background = spendPct >= 90 ? 'var(--rose)' : (spendPct >= 70 ? 'var(--amber)' : 'var(--emerald)');
 
-            const savePct = monthlyGoals.savingsTarget > 0 ? Math.min((totalSavingsDeposits / monthlyGoals.savingsTarget) * 100, 100) : 0;
-            document.getElementById('saveGoalStatus').textContent = `${formatPHP(totalSavingsDeposits)} / ${formatPHP(monthlyGoals.savingsTarget)}`;
+            const savePct = monthlyGoals.savingsTarget > 0 ? Math.max(0, Math.min((totalSavingsDeposits / monthlyGoals.savingsTarget) * 100, 100)) : 0;
+            document.getElementById('saveGoalStatus').textContent = `${totalSavingsDeposits < 0 ? '-' : ''}${formatPHP(Math.abs(totalSavingsDeposits))} / ${formatPHP(monthlyGoals.savingsTarget)}`;
             const saveBar = document.getElementById('saveProgressBar');
             saveBar.style.width = `${savePct}%`;
         }
@@ -2230,13 +2462,14 @@
         }
 
         function renderSummary() {
-            const total = accounts.reduce((acc, item) => acc + item.balance, 0);
+            const total = round2(accounts.reduce((acc, item) => acc + item.balance, 0));
             animateNumber(document.getElementById('totalBalance'), total);
+            const barTotal = accounts.reduce((sum, a) => sum + Math.max(0, a.balance), 0);
 
             const bar = document.getElementById('distributionBar');
             const keep = new Set();
             accounts.forEach(acc => {
-                const pct = total > 0 ? (acc.balance / total) * 100 : 0;
+                const pct = barTotal > 0 ? (Math.max(0, acc.balance) / barTotal) * 100 : 0;
                 if (pct <= 0) return;
                 keep.add(acc.id);
                 let seg = [...bar.children].find(c => c.dataset.id === acc.id);
@@ -2266,15 +2499,15 @@
 
                 card.innerHTML = `
                     <div class="account-left">
-                        <div class="account-badge" style="background: ${acc.color}15; color: ${acc.color};">
-                            ${acc.iconText}
+                        <div class="account-badge" style="background: ${esc(acc.color)}15; color: ${esc(acc.color)};">
+                            ${esc(acc.iconText)}
                         </div>
                         <div>
-                            <h4 style="font-size: 14px; font-weight: 700;">${acc.name}</h4>
-                            <span style="font-size: 11px; color: var(--text-muted);">Tap to edit</span>
+                            <h4 style="font-size: 14px; font-weight: 700;">${esc(acc.name)}</h4>
+                            <span style="font-size: 11px; color: var(--text-muted);">${acc.isSavings ? 'Savings • ' : ''}Tap to edit</span>
                         </div>
                     </div>
-                    <div style="font-size: 16px; font-weight: 800;" class="balance-text">
+                    <div style="font-size: 16px; font-weight: 800;${acc.balance < 0 ? ' color: var(--rose);' : ''}" class="balance-text">
                         ${formatPHP(acc.balance)}
                     </div>
                 `;
@@ -2289,8 +2522,6 @@
 
             const searchQuery = (document.getElementById('txSearchInput')?.value || '').toLowerCase();
             const now = new Date();
-            const todayStr = now.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            const monthStr = now.toLocaleDateString([], { month: 'short' });
 
             const filtered = historyLogs.filter(log => {
                 const matchType = currentTxFilter === 'all' || log.type === currentTxFilter;
@@ -2298,14 +2529,14 @@
                 
                 let matchDate = true;
                 if (currentDateFilter === 'today') {
-                    matchDate = (log.date || '').includes(todayStr) || log.date === 'Today';
+                    matchDate = isToday(log, now);
                 } else if (currentDateFilter === 'month') {
-                    matchDate = (log.date || '').includes(monthStr) || log.date === 'Today';
+                    matchDate = isThisMonth(log, now);
                 }
 
                 let matchSearch = true;
                 if (searchQuery) {
-                    const textContent = `${log.title} ${log.category || ''} ${log.note || ''} ${log.date || ''}`.toLowerCase();
+                    const textContent = `${log.title} ${log.category || ''} ${log.note || ''} ${logDateLabel(log)}`.toLowerCase();
                     matchSearch = textContent.includes(searchQuery);
                 }
 
@@ -2319,7 +2550,7 @@
                 return;
             }
 
-            filtered.forEach(log => {
+            filtered.slice(0, historyVisible).forEach(log => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
 
@@ -2333,12 +2564,13 @@
 
                 item.innerHTML = `
                     <div>
-                        <h5 style="font-size: 13px; font-weight: 700;">${log.title}</h5>
-                        <p style="font-size: 10px; color: var(--text-muted);">${log.category || 'General'} • ${log.date || ''} ${log.time}</p>
+                        <h5 style="font-size: 13px; font-weight: 700;">${esc(log.title)}</h5>
+                        <p style="font-size: 10px; color: var(--text-muted);">${esc(log.category || 'General')} • ${esc(logDateLabel(log))} ${esc(log.time)}</p>
+                        ${log.note ? `<p style="font-size: 10px; color: var(--text-muted); font-style: italic; margin-top: 2px;">${esc(log.note)}</p>` : ''}
                     </div>
                     <div style="text-align: right;">
                         ${log.amount !== 0 ? `<div style="font-size: 13px; font-weight: 800; ${colorClass}" class="balance-text">${sign}${formatPHP(log.amount)}</div>` : ''}
-                        <span style="font-size: 9px; color: var(--text-muted); text-transform: uppercase;">${accName}</span>
+                        <span style="font-size: 9px; color: var(--text-muted); text-transform: uppercase;">${esc(accName)}</span>
                     </div>
                 `;
                 const canEdit = log.type === 'income' || log.type === 'expense';
@@ -2350,6 +2582,15 @@
                 container.appendChild(row);
                 attachSwipe(row, item, log.id, canEdit);
             });
+
+            if (filtered.length > historyVisible) {
+                const more = document.createElement('button');
+                more.className = 'btn-action btn-outline-action';
+                more.style.cssText = 'width:100%; margin-top:4px;';
+                more.textContent = `Show more (${filtered.length - historyVisible} left)`;
+                more.onclick = () => { historyVisible += HISTORY_PAGE; renderHistory(); };
+                container.appendChild(more);
+            }
         }
 
         // Privacy Mode
@@ -2388,6 +2629,12 @@
         }
 
         function closeModal(modalId) {
+            if (modalId === 'addTransactionModal') {
+                // Closing/cancelling must not leave a pending bill (or its prefilled amount/note) for the next log
+                pendingPayBillId = null;
+                document.getElementById('txAmount').value = '';
+                document.getElementById('txNote').value = '';
+            }
             document.getElementById(modalId).classList.remove('open');
         }
 
@@ -2396,13 +2643,13 @@
             if (!sel) return;
             sel.innerHTML = '';
             accounts.forEach(a => {
-                sel.innerHTML += `<option value="${a.id}">${a.name} (${formatPHP(a.balance)})</option>`;
+                sel.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)} (${formatPHP(a.balance)})</option>`;
             });
         }
 
         function submitDebt() {
             const person = document.getElementById('debtPersonInput').value;
-            const amount = parseFloat(document.getElementById('debtAmountInput').value);
+            const amount = round2(parseFloat(document.getElementById('debtAmountInput').value));
             const type = document.getElementById('debtTypeInput').value;
             const accId = document.getElementById('debtAccountInput').value;
 
@@ -2412,17 +2659,18 @@
             }
 
             const acc = accounts.find(a => a.id === accId);
+            if (acc && type === 'lent' && !confirmOverspend(acc, amount)) return;
             if (acc) {
                 if (type === 'lent') {
-                    acc.balance -= amount;
+                    acc.balance = round2(acc.balance - amount);
                     logHistory(`Lent to ${person}`, amount, 'expense', 'Debt/Loan', acc.id);
                 } else {
-                    acc.balance += amount;
+                    acc.balance = round2(acc.balance + amount);
                     logHistory(`Borrowed from ${person}`, amount, 'income', 'Debt/Loan', acc.id);
                 }
             }
 
-            debts.push({ id: Date.now(), person, amount, type, accountId: accId, settled: false });
+            debts.push({ id: uid(), person, amount, type, accountId: accId, settled: false });
             saveData();
             renderApp();
             closeModal('addDebtModal');
@@ -2458,12 +2706,12 @@
             const sel = document.getElementById('txAccount');
             sel.innerHTML = '';
             accounts.forEach(a => {
-                sel.innerHTML += `<option value="${a.id}">${a.name} (${formatPHP(a.balance)})</option>`;
+                sel.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)} (${formatPHP(a.balance)})</option>`;
             });
         }
 
         function submitTransaction() {
-            const amt = parseFloat(document.getElementById('txAmount').value);
+            const amt = round2(parseFloat(document.getElementById('txAmount').value));
             const accId = document.getElementById('txAccount').value;
             const cat = document.getElementById('txCategory').value;
 
@@ -2475,18 +2723,24 @@
             const acc = accounts.find(a => a.id === accId);
             if (!acc) return;
 
+            if (activeTxType === 'expense' && !confirmOverspend(acc, amt)) return;
+
+            const note = (document.getElementById('txNote').value || '').trim();
+            const extra = note ? { note } : undefined;
+
             if (activeTxType === 'expense') {
-                acc.balance -= amt;
-                logHistory(`${acc.name} Expense`, amt, 'expense', cat, acc.id);
+                acc.balance = round2(acc.balance - amt);
+                logHistory(`${acc.name} Expense`, amt, 'expense', cat, acc.id, extra);
             } else {
-                acc.balance += amt;
-                logHistory(`${acc.name} Income`, amt, 'income', cat, acc.id);
+                acc.balance = round2(acc.balance + amt);
+                logHistory(`${acc.name} Income`, amt, 'income', cat, acc.id, extra);
             }
 
             if (pendingPayBillId !== null) {
                 const bill = recurringBills.find(b => b.id === pendingPayBillId);
                 if (bill) {
                     bill.paid = true;
+                    bill.paidMonth = monthKey();
                 }
                 pendingPayBillId = null;
             }
@@ -2509,17 +2763,18 @@
             document.getElementById('singleEditInput').value = acc.balance;
             document.getElementById('editAccBadgeInput').value = acc.iconText || acc.name.substring(0, 2).toUpperCase();
             document.getElementById('editAccColorInput').value = acc.color || '#0a84ff';
+            document.getElementById('editAccSavingsInput').checked = !!acc.isSavings;
             
             openModal('singleEditModal');
         }
 
         function saveSingleBalance() {
             const name = document.getElementById('editAccNameInput').value.trim();
-            const val = parseFloat(document.getElementById('singleEditInput').value);
+            const val = round2(parseFloat(document.getElementById('singleEditInput').value));
             const badge = document.getElementById('editAccBadgeInput').value.trim().toUpperCase();
             const color = document.getElementById('editAccColorInput').value;
 
-            if (!name || isNaN(val) || val < 0) {
+            if (!name || isNaN(val)) {
                 showToast('Enter valid account details');
                 return;
             }
@@ -2529,6 +2784,7 @@
                 acc.balance = val;
                 acc.iconText = badge || name.substring(0, 2).toUpperCase();
                 acc.color = color;
+                acc.isSavings = document.getElementById('editAccSavingsInput').checked;
                 
                 logHistory(`${acc.name} Account Updated`, 0, 'update', 'System', acc.id);
                 saveData();
@@ -2540,7 +2796,7 @@
 
         function submitNewAccount() {
             const name = document.getElementById('addAccNameInput').value.trim();
-            const bal = parseFloat(document.getElementById('addAccBalanceInput').value) || 0;
+            const bal = round2(parseFloat(document.getElementById('addAccBalanceInput').value) || 0);
             let badge = document.getElementById('addAccBadgeInput').value.trim().toUpperCase();
             const color = document.getElementById('addAccColorInput').value;
 
@@ -2553,13 +2809,14 @@
                 badge = name.substring(0, 2).toUpperCase();
             }
 
-            const id = 'acc_' + Date.now();
+            const id = 'acc_' + uid();
             accounts.push({
                 id,
                 name,
                 balance: bal,
                 color,
-                iconText: badge
+                iconText: badge,
+                isSavings: document.getElementById('addAccSavingsInput').checked
             });
 
             saveData();
@@ -2570,6 +2827,7 @@
             document.getElementById('addAccNameInput').value = '';
             document.getElementById('addAccBalanceInput').value = '';
             document.getElementById('addAccBadgeInput').value = '';
+            document.getElementById('addAccSavingsInput').checked = false;
         }
 
         function deleteAccount() {
@@ -2597,8 +2855,8 @@
             accounts.forEach(acc => {
                 container.innerHTML += `
                     <div class="form-group">
-                        <label class="form-label">${acc.name}</label>
-                        <input type="number" step="0.01" class="form-input quick-input" data-id="${acc.id}" value="${acc.balance}" inputmode="decimal">
+                        <label class="form-label">${esc(acc.name)}</label>
+                        <input type="number" step="0.01" class="form-input quick-input" data-id="${esc(acc.id)}" value="${esc(acc.balance)}" inputmode="decimal">
                     </div>
                 `;
             });
@@ -2608,7 +2866,7 @@
             const inputs = document.querySelectorAll('.quick-input');
             inputs.forEach(input => {
                 const id = input.getAttribute('data-id');
-                const val = parseFloat(input.value);
+                const val = round2(parseFloat(input.value));
                 const acc = accounts.find(a => a.id === id);
                 if (acc && !isNaN(val)) {
                     acc.balance = val;
@@ -2627,8 +2885,8 @@
             from.innerHTML = '';
             to.innerHTML = '';
             accounts.forEach(a => {
-                from.innerHTML += `<option value="${a.id}">${a.name} (${formatPHP(a.balance)})</option>`;
-                to.innerHTML += `<option value="${a.id}">${a.name} (${formatPHP(a.balance)})</option>`;
+                from.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)} (${formatPHP(a.balance)})</option>`;
+                to.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)} (${formatPHP(a.balance)})</option>`;
             });
             if (accounts.length > 1) to.selectedIndex = 1;
             document.getElementById('transferAmount').value = '';
@@ -2665,7 +2923,7 @@
         function executeTransfer() {
             const fromId = document.getElementById('transferFrom').value;
             const toId = document.getElementById('transferTo').value;
-            const amt = parseFloat(document.getElementById('transferAmount').value);
+            const amt = round2(parseFloat(document.getElementById('transferAmount').value));
 
             if (fromId === toId) {
                 showToast('Select different accounts');
@@ -2679,16 +2937,15 @@
             const fromAcc = accounts.find(a => a.id === fromId);
             const toAcc = accounts.find(a => a.id === toId);
 
-            if (fromAcc.balance < amt) {
+            if (round2(fromAcc.balance - amt) < 0) {
                 showToast('Insufficient funds');
                 return;
             }
 
-            fromAcc.balance -= amt;
-            toAcc.balance += amt;
+            fromAcc.balance = round2(fromAcc.balance - amt);
+            toAcc.balance = round2(toAcc.balance + amt);
 
-            logHistory(`${fromAcc.name} ➔ ${toAcc.name}`, amt, 'transfer', 'Transfer', fromAcc.id);
-            historyLogs[0].toId = toAcc.id;
+            logHistory(`${fromAcc.name} ➔ ${toAcc.name}`, amt, 'transfer', 'Transfer', fromAcc.id, { toId: toAcc.id });
             saveData();
             renderApp();
             closeModal('transferModal');
@@ -2702,10 +2959,11 @@
             renderHistory();
         }
 
-        function logHistory(title, amount, type, category, accountId) {
+        function logHistory(title, amount, type, category, accountId, extra) {
             const now = new Date();
-            historyLogs.unshift({
-                id: Date.now(),
+            const entry = {
+                id: uid(),
+                ts: now.getTime(),
                 title,
                 amount,
                 type,
@@ -2713,14 +2971,22 @@
                 date: now.toLocaleDateString([], { month: 'short', day: 'numeric' }),
                 time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 accountId
-            });
-            if (historyLogs.length > 50) historyLogs.pop();
+            };
+            if (extra) Object.assign(entry, extra);
+            historyLogs.unshift(entry);
+            if (historyLogs.length > HISTORY_LIMIT) historyLogs.length = HISTORY_LIMIT;
         }
 
         function confirmReset() {
-            if (confirm('Reset all balances and history?')) {
-                accounts = JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
+            if (confirm('Reset ALL data?\n\nBalances, history, bills, IOUs, goals and categories go back to defaults. Theme and privacy settings are kept.')) {
+                accounts = clone(DEFAULT_ACCOUNTS);
                 historyLogs = [];
+                recurringBills = clone(DEFAULT_BILLS);
+                debts = clone(DEFAULT_DEBTS);
+                monthlyGoals = clone(DEFAULT_GOALS);
+                customCategories = clone(DEFAULT_CATEGORIES);
+                pendingPayBillId = null;
+                historyVisible = HISTORY_PAGE;
                 saveData();
                 renderApp();
                 showToast('App reset to defaults');
