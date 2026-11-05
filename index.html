@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Wallet Balance Tracker</title>
     <meta name="theme-color" id="themeColorMeta" content="#05070f">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" href="icon-192.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -247,11 +244,11 @@
             transition: all 0.3s ease;
         }
 
-        /* Header */
+        /* Header Fixes for Overlapping Issues */
         header {
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 16px;
             margin-bottom: 24px;
         }
 
@@ -259,17 +256,21 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            width: 100%;
+            gap: 12px;
         }
 
         .brand-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
         }
 
         .brand-icon {
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             border-radius: 14px;
             background: var(--fill-2);
             backdrop-filter: blur(16px);
@@ -279,17 +280,20 @@
             align-items: center;
             justify-content: center;
             color: var(--primary);
+            flex-shrink: 0;
         }
 
         .action-btns {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         .icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
+            width: 38px;
+            height: 38px;
+            border-radius: 19px;
             background: var(--fill-2);
             backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
@@ -300,6 +304,7 @@
             cursor: pointer;
             box-shadow: var(--shadow-elevation-1);
             transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+            flex-shrink: 0;
         }
 
         .icon-btn:active {
@@ -462,7 +467,7 @@
             color: var(--text-main);
         }
 
-        /* Accounts List Redesign & Quick Action Buttons */
+        /* Accounts List */
         main {
             flex: 1;
             display: flex;
@@ -484,49 +489,46 @@
         .accounts-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
         }
 
+        /* Minimal iOS Style Account Cards */
         .account-card {
-            padding: 20px 22px;
+            padding: 16px 18px;
             display: flex;
-            flex-direction: column;
-            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
             border-radius: 24px;
             background: var(--surface-card);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
             border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-elevation-1);
             position: relative;
             overflow: hidden;
-            box-shadow: var(--shadow-elevation-1);
-            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            border-left: none !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .account-card::after {
+        .account-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            width: 6px;
-            background: var(--acc-color, var(--primary));
-            border-radius: 24px 0 0 24px;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--sheen);
+            pointer-events: none;
+            border-radius: inherit;
         }
 
         .account-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-glass);
             background: var(--surface-hover);
         }
 
         .account-card:active {
-            transform: scale(0.985);
-        }
-
-        .account-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            transform: scale(0.975);
+            background: var(--fill-4);
         }
 
         .account-left {
@@ -536,78 +538,66 @@
         }
 
         .account-badge {
-            width: 46px;
-            height: 46px;
+            width: 44px;
+            height: 44px;
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 14px;
-            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .account-info h4 {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-main);
+            font-size: 13px;
             letter-spacing: -0.2px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.12);
+            position: relative;
         }
 
-        .account-info span {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-top: 2px;
-            display: block;
+        .account-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
-        .account-right {
-            text-align: right;
-        }
-
-        .account-right .balance-text {
-            font-size: 17px;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            color: var(--text-main);
-        }
-
-        .account-quick-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .card-act-btn {
-            background: var(--fill-2);
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            border-radius: 12px;
-            padding: 8px 6px;
-            font-size: 11px;
+        .account-name {
+            font-size: 14px;
             font-weight: 700;
+            letter-spacing: -0.2px;
+            color: var(--text-main);
+        }
+
+        .account-tag {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            gap: 4px;
         }
 
-        .card-act-btn:hover {
-            background: var(--fill-4);
+        .savings-pill {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 6px;
+            background: rgba(48, 209, 88, 0.12);
+            color: var(--emerald);
+            border: 1px solid rgba(48, 209, 88, 0.25);
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
         }
 
-        .card-act-btn:active {
-            transform: scale(0.95);
+        .account-balance-wrap {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
         }
 
-        .card-act-btn.exp { color: var(--rose); }
-        .card-act-btn.inc { color: var(--emerald); }
-        .card-act-btn.trf { color: var(--primary); }
+        .account-balance-amount {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+        }
 
         /* History */
         .history-section {
@@ -869,10 +859,8 @@
         .section-title { font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; padding: 0 4px; }
         .section-title button { font-size: 13px !important; font-weight: 600 !important; }
         .goals-card, .analytics-card, .bills-card { padding: 20px; }
-        .goals-card [style*="rgba(48, 209, 88, 0.1)"], .goals-card [style*="rgba(255, 69, 58, 0.1)"] {
-            border-color: transparent !important; border-radius: 20px !important; }
 
-        .account-card { border-radius: 24px; padding: 18px 20px; }
+        .account-card { border-radius: 24px; padding: 16px 18px; }
         .history-item, .bill-item { border-radius: 20px; box-shadow: none; }
         .filter-btn { padding: 7px 16px; font-size: 12px; }
         .filter-btn.active { box-shadow: none; }
@@ -892,7 +880,6 @@
         /* ===== PWA safe areas + swipe rows ===== */
         .app-container { padding-top: calc(20px + env(safe-area-inset-top)); padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
         .modal-content { padding-bottom: calc(34px + env(safe-area-inset-bottom)); }
-        .dropdown-item[hidden] { display: none; }
 
         .swipe-row { position: relative; border-radius: 20px; overflow: hidden; flex-shrink: 0; }
         .swipe-row .history-item { position: relative; touch-action: pan-y; cursor: grab; will-change: transform;
@@ -917,7 +904,6 @@
         .tab-pane.active > *:nth-child(2) { animation-delay: 0.05s; }
         .tab-pane.active > *:nth-child(3) { animation-delay: 0.10s; }
         .tab-pane.active > *:nth-child(4) { animation-delay: 0.15s; }
-        .tab-pane.active > *:nth-child(5) { animation-delay: 0.20s; }
 
         .glass-card { transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease, background-color 0.3s ease, border-color 0.3s ease; }
 
@@ -935,8 +921,8 @@
         .btn-action, .icon-btn, .filter-btn, .btn-submit, .bill-pay-btn, .theme-option, .account-card {
             transition: transform 0.4s var(--spring), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.3s ease, color 0.25s ease; }
         .btn-action:active, .icon-btn:active, .filter-btn:active, .btn-submit:active, .bill-pay-btn:active { transform: scale(0.94); transition-duration: 0.12s; }
-        .account-card:active { transform: scale(0.985); transition-duration: 0.12s; }
-        @media (hover: hover) { .account-card:hover { transform: translateY(-3px); } }
+        .account-card:active { transform: scale(0.975); transition-duration: 0.12s; }
+        @media (hover: hover) { .account-card:hover { transform: translateY(-2px); } }
 
         /* iOS sheet curve */
         .modal-overlay { transition: opacity 0.35s ease; }
@@ -953,7 +939,6 @@
 
         /* theme crossfade */
         html.theme-anim *, html.theme-anim *::before { transition: background-color 0.45s ease, color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease !important; }
-        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.45s; }
 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; }
@@ -970,38 +955,51 @@
                     <div class="brand-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
                     </div>
-                    <div>
-                        <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Vault Balance</span>
-                        <h1 style="font-size: 14px; font-weight: 700;">Azzer Wallet</h1>
+                    <div style="min-width: 0;">
+                        <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Vault Balance</span>
+                        <h1 style="font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Azzer Wallet</h1>
                     </div>
                 </div>
 
-                <div class="menu-wrap" id="menuWrap">
-                    <button class="icon-btn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true" aria-expanded="false">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
+                <div class="action-btns">
+                    <!-- Standalone Privacy Eye Button -->
+                    <button class="icon-btn" id="standalonePrivacyBtn" onclick="togglePrivacy()" title="Toggle Privacy" aria-label="Toggle Privacy">
+                        <svg id="topPrivacySvg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
                     </button>
-                    <div class="dropdown" id="dropdownMenu" role="menu">
-                        <button class="dropdown-item" role="menuitem" onclick="menuAction(togglePrivacy)">
-                            <svg id="privacySvg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <span id="privacyLabel">Hide Balances</span>
+
+                    <!-- Standalone Theme Button -->
+                    <button class="icon-btn" id="standaloneThemeBtn" onclick="openModal('themeModal')" title="Choose Theme" aria-label="Choose Theme">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+                        </svg>
+                    </button>
+
+                    <!-- Main Menu Dropdown -->
+                    <div class="menu-wrap" id="menuWrap">
+                        <button class="icon-btn" id="menuBtn" onclick="toggleMenu(event)" title="Menu" aria-haspopup="true" aria-expanded="false">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
                         </button>
-                        <button class="dropdown-item" role="menuitem" onclick="menuAction(() => openModal('themeModal'))">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-                            <span>Theme</span>
-                        </button>
-                        <button class="dropdown-item" role="menuitem" onclick="menuAction(exportCSV)">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            <span>Export CSV</span>
-                        </button>
-                        <button class="dropdown-item" id="installItem" role="menuitem" hidden onclick="menuAction(installApp)">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 8v6"/><path d="m9 11 3 3 3-3"/></svg>
-                            <span>Install App</span>
-                        </button>
-                        <div class="dropdown-sep"></div>
-                        <button class="dropdown-item danger" role="menuitem" onclick="menuAction(confirmReset)">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                            <span>Reset Data</span>
-                        </button>
+                        <div class="dropdown" id="dropdownMenu" role="menu">
+                            <button class="dropdown-item" role="menuitem" onclick="menuAction(exportCSV)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span>Export CSV</span>
+                            </button>
+                            <button class="dropdown-item" role="menuitem" onclick="menuAction(exportJSON)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <span>Export JSON Backup</span>
+                            </button>
+                            <button class="dropdown-item" role="menuitem" onclick="menuAction(triggerJSONImport)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.89 12 3l8 11.89"/><path d="M12 3v18"/></svg>
+                                <span>Import JSON Backup</span>
+                            </button>
+                            <div class="dropdown-sep"></div>
+                            <button class="dropdown-item danger" role="menuitem" onclick="menuAction(confirmReset)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                <span>Reset Data</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1575,8 +1573,39 @@
     <!-- Toast -->
     <div id="toast"><span id="toastMsg">Success</span></div>
 
+    <!-- Hidden File Input for JSON Backup Restore -->
+    <input type="file" id="importJsonInput" accept=".json" style="display: none;" onchange="handleJSONImport(event)">
+
     <!-- Core Script -->
     <script>
+        // Global Navigation & Utility Functions
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            const pane = document.getElementById(`tab-${tabId}`);
+            if (pane) pane.classList.add('active');
+            if (btn) {
+                btn.classList.add('active');
+                const idx = [...document.querySelectorAll('.tab-btn')].indexOf(btn);
+                const nav = document.querySelector('.tab-nav');
+                if (nav && idx !== -1) nav.style.setProperty('--tab-i', idx);
+            }
+        }
+
+        function toggleMenu(e) {
+            if (e) e.stopPropagation();
+            const open = document.getElementById('dropdownMenu').classList.toggle('open');
+            document.getElementById('menuBtn').setAttribute('aria-expanded', open);
+        }
+        function closeMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            if (menu) menu.classList.remove('open');
+            const btn = document.getElementById('menuBtn');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+        function menuAction(fn) { closeMenu(); fn(); }
+
         // SafeStorage Engine
         const memoryStore = {};
         const SafeStorage = {
@@ -1628,16 +1657,12 @@
         let currentDateFilter = 'all';
 
         const clone = o => JSON.parse(JSON.stringify(o));
-
-        // Money is kept in whole centavos to avoid floating-point drift (0.1 + 0.2 = 0.30000000000000004)
         const round2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
         function confirmOverspend(acc, amt) {
             const after = round2(acc.balance - amt);
             if (after >= 0) return true;
-            return confirm(`${acc.name} only has ${formatPHP(acc.balance)}.
-
-This will leave it at ${formatPHP(after)}. Continue?`);
+            return confirm(`${acc.name} only has ${formatPHP(acc.balance)}.\n\nThis will leave it at ${formatPHP(after)}. Continue?`);
         }
 
         const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -1662,16 +1687,6 @@ This will leave it at ${formatPHP(after)}. Continue?`);
         const HISTORY_LIMIT = 10000;
         const HISTORY_PAGE = 50;
         let historyVisible = HISTORY_PAGE;
-
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            btn.classList.add('active');
-            const idx = [...document.querySelectorAll('.tab-btn')].indexOf(btn);
-            document.querySelector('.tab-nav').style.setProperty('--tab-i', idx);
-        }
 
         const DEFAULT_CATEGORIES = [
             { name: 'Food & Dining', emoji: '🍔' },
@@ -1805,16 +1820,6 @@ This will leave it at ${formatPHP(after)}. Continue?`);
                 b.classList.toggle('active', b.dataset.themeOpt === currentTheme));
         }
 
-        function toggleMenu(e) {
-            if (e) e.stopPropagation();
-            const open = document.getElementById('dropdownMenu').classList.toggle('open');
-            document.getElementById('menuBtn').setAttribute('aria-expanded', open);
-        }
-        function closeMenu() {
-            document.getElementById('dropdownMenu').classList.remove('open');
-            document.getElementById('menuBtn').setAttribute('aria-expanded', 'false');
-        }
-        function menuAction(fn) { closeMenu(); fn(); }
         document.addEventListener('click', e => {
             if (!e.target.closest('#menuWrap')) closeMenu();
         });
@@ -1823,6 +1828,7 @@ This will leave it at ${formatPHP(after)}. Continue?`);
         const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         function animateNumber(el, to) {
+            if (!el) return;
             const from = el._val || 0;
             el._val = to;
             if (el._raf) cancelAnimationFrame(el._raf);
@@ -1854,7 +1860,7 @@ This will leave it at ${formatPHP(after)}. Continue?`);
                 dx = x;
                 item.style.transform = `translateX(${x}px)`;
                 if (editBtn) editBtn.style.width = Math.max(0, x) + 'px';
-                delBtn.style.width = Math.max(0, -x) + 'px';
+                if (delBtn) delBtn.style.width = Math.max(0, -x) + 'px';
             };
             row.setPos = x => { setPos(x); if (x === 0 && openRow === row) openRow = null; };
 
@@ -1892,7 +1898,7 @@ This will leave it at ${formatPHP(after)}. Continue?`);
             item.addEventListener('pointercancel', end);
 
             if (editBtn) editBtn.addEventListener('click', () => { row.setPos(0); openEditTx(logId); });
-            delBtn.addEventListener('click', () => deleteTx(logId));
+            if (delBtn) delBtn.addEventListener('click', () => deleteTx(logId));
         }
 
         document.addEventListener('pointerdown', e => {
@@ -1906,17 +1912,11 @@ This will leave it at ${formatPHP(after)}. Continue?`);
             const toAcc = accounts.find(a => a.id === log.toId);
             const revertible = ((log.type === 'income' || log.type === 'expense') && acc) || (log.type === 'transfer' && acc && toAcc);
             let msg = `Delete "${log.title}"?`;
-            if (revertible) msg += `
-
-${formatPHP(log.amount)} will be reversed in your balance.`;
-            else if (['income', 'expense', 'transfer'].includes(log.type)) msg += `
-
-Note: the account for this entry no longer exists (or the transfer details are missing), so your balances will NOT change.`;
+            if (revertible) msg += `\n\n${formatPHP(log.amount)} will be reversed in your balance.`;
+            else if (['income', 'expense', 'transfer'].includes(log.type)) msg += `\n\nNote: the account for this entry no longer exists, so your balances will NOT change.`;
             const goesNegative = revertible && ((log.type === 'income' && round2(acc.balance - log.amount) < 0) ||
                 (log.type === 'transfer' && round2(toAcc.balance - log.amount) < 0));
-            if (goesNegative) msg += `
-
-Warning: this will leave an account with a negative balance.`;
+            if (goesNegative) msg += `\n\nWarning: this will leave an account with a negative balance.`;
             if (!confirm(msg)) { closeOpenRow(); return; }
 
             if (log.type === 'expense' && acc) acc.balance = round2(acc.balance + log.amount);
@@ -1975,30 +1975,6 @@ Warning: this will leave an account with a negative balance.`;
             showToast('Transaction updated');
         }
 
-        let deferredInstall = null;
-        const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-        function updateInstallItem() {
-            const el = document.getElementById('installItem');
-            if (el) el.hidden = isStandalone() || !(deferredInstall || isIOS);
-        }
-        function installApp() {
-            if (deferredInstall) {
-                deferredInstall.prompt();
-                deferredInstall.userChoice.finally(() => { deferredInstall = null; updateInstallItem(); });
-            } else {
-                alert('Sa Safari: i-tap ang Share button, tapos piliin ang "Add to Home Screen".');
-            }
-        }
-        window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; updateInstallItem(); });
-        window.addEventListener('appinstalled', () => { deferredInstall = null; updateInstallItem(); });
-        updateInstallItem();
-
-        if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-        }
-
         function formatPHP(amount) {
             const n = round2(amount);
             return (n < 0 ? '-' : '') + '₱' + Math.abs(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2012,9 +1988,9 @@ Warning: this will leave an account with a negative balance.`;
         function logTs(l) {
             if (typeof l.ts === 'number' && isFinite(l.ts)) return l.ts;
             if (typeof l.id === 'number' && l.id > 1e12) return l.id;
-            if (!/^[A-Za-z]{3,}\.? \d{1,2}$/.test(l.date || '')) return 0;
+            if (!/^[A-Za-z]{3,}\.? \d{1,2}$/.test(l.date || '')) return Date.now();
             const guess = Date.parse(`${l.date} ${new Date().getFullYear()}`);
-            return isFinite(guess) ? guess : 0;
+            return isFinite(guess) ? guess : Date.now();
         }
         function isThisMonth(l, now = new Date()) {
             const d = new Date(logTs(l));
@@ -2057,12 +2033,16 @@ Warning: this will leave an account with a negative balance.`;
 
             const net = monthlyIncome - monthlyExpense;
 
-            document.getElementById('cashFlowIncome').textContent = formatPHP(monthlyIncome);
-            document.getElementById('cashFlowExpense').textContent = formatPHP(monthlyExpense);
+            const incEl = document.getElementById('cashFlowIncome');
+            const expEl = document.getElementById('cashFlowExpense');
+            if (incEl) incEl.textContent = formatPHP(monthlyIncome);
+            if (expEl) expEl.textContent = formatPHP(monthlyExpense);
             
             const badge = document.getElementById('cashFlowNetBadge');
-            badge.textContent = `${net >= 0 ? '+' : ''}${formatPHP(net)} Net`;
-            badge.style.color = net >= 0 ? 'var(--emerald)' : 'var(--rose)';
+            if (badge) {
+                badge.textContent = `${net >= 0 ? '+' : ''}${formatPHP(net)} Net`;
+                badge.style.color = net >= 0 ? 'var(--emerald)' : 'var(--rose)';
+            }
         }
 
         function populateCategorySelect() {
@@ -2078,6 +2058,7 @@ Warning: this will leave an account with a negative balance.`;
 
         function renderCustomCategories() {
             const list = document.getElementById('customCategoriesList');
+            if (!list) return;
             list.innerHTML = '';
             customCategories.forEach((c, index) => {
                 list.innerHTML += `
@@ -2118,6 +2099,7 @@ Warning: this will leave an account with a negative balance.`;
 
         function renderDebts() {
             const list = document.getElementById('debtsList');
+            if (!list) return;
             list.innerHTML = '';
 
             if (debts.length === 0) {
@@ -2183,12 +2165,12 @@ Warning: this will leave an account with a negative balance.`;
         function updateSettlePreview() {
             const d = debts.find(item => item.id === activeSettleDebtId);
             const out = document.getElementById('settleDebtPreview');
-            if (!d) { out.textContent = ''; return; }
+            if (!d) { if (out) out.textContent = ''; return; }
             const acc = accounts.find(a => a.id === document.getElementById('settleDebtAccount').value);
-            if (!acc) { out.textContent = 'Your balances will not change.'; }
+            if (!acc) { if (out) out.textContent = 'Your balances will not change.'; }
             else {
                 const after = round2(acc.balance + (d.type === 'lent' ? d.amount : -d.amount));
-                out.textContent = `${acc.name}: ${formatPHP(acc.balance)} → ${formatPHP(after)}`;
+                if (out) out.textContent = `${acc.name}: ${formatPHP(acc.balance)} → ${formatPHP(after)}`;
             }
             applyPrivacy();
         }
@@ -2239,7 +2221,7 @@ Warning: this will leave an account with a negative balance.`;
 
         function csvCell(v) {
             let t = String(v ?? '');
-            if (/^[=+\-@	]/.test(t)) t = "'" + t;
+            if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
             return '"' + t.replace(/"/g, '""') + '"';
         }
 
@@ -2264,10 +2246,9 @@ Warning: this will leave an account with a negative balance.`;
                     accObj ? accObj.name : 'All', ts ? localDateStr(ts) : '', l.note || ''
                 ]);
             });
-            const csv = rows.map((r, i) => r.map((c, k) => (i > 0 && k === 1) ? String(Number(c) || 0) : csvCell(c)).join(',')).join('
-');
+            const csv = rows.map((r, i) => r.map((c, k) => (i > 0 && k === 1) ? String(Number(c) || 0) : csvCell(c)).join(',')).join('\r\n');
 
-            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -2277,6 +2258,134 @@ Warning: this will leave an account with a negative balance.`;
             document.body.removeChild(link);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
             showToast('CSV Exported');
+        }
+
+        // Privacy Mode Functions
+        function togglePrivacy() {
+            isPrivacyHidden = !isPrivacyHidden;
+            applyPrivacy();
+            saveData();
+        }
+
+        function applyPrivacy() {
+            const balances = document.querySelectorAll('.balance-text');
+            const svg = document.getElementById('topPrivacySvg');
+            const pl = document.getElementById('privacyLabel');
+            if (pl) pl.textContent = isPrivacyHidden ? 'Show Balances' : 'Hide Balances';
+            if (isPrivacyHidden) {
+                balances.forEach(el => el.classList.add('blur-balance'));
+                if (svg) svg.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
+            } else {
+                balances.forEach(el => el.classList.remove('blur-balance'));
+                if (svg) svg.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+            }
+        }
+
+        // Modal Controls
+        function openModal(modalId) {
+            if (modalId === 'addTransactionModal') populateTxAccounts();
+            if (modalId === 'addDebtModal') populateDebtAccounts();
+            if (modalId === 'quickUpdateModal') buildQuickInputs();
+            if (modalId === 'transferModal') buildTransferSelects();
+            if (modalId === 'manageCategoriesModal') renderCustomCategories();
+            if (modalId === 'goalsModal') {
+                const s = document.getElementById('targetSpendingInput');
+                const v = document.getElementById('targetSavingsInput');
+                if (s) s.value = monthlyGoals.spendingTarget;
+                if (v) v.value = monthlyGoals.savingsTarget;
+            }
+            const el = document.getElementById(modalId);
+            if (el) el.classList.add('open');
+        }
+
+        function closeModal(modalId) {
+            if (modalId === 'addTransactionModal') {
+                pendingPayBillId = null;
+                const a = document.getElementById('txAmount');
+                const n = document.getElementById('txNote');
+                if (a) a.value = '';
+                if (n) n.value = '';
+            }
+            const el = document.getElementById(modalId);
+            if (el) el.classList.remove('open');
+        }
+
+        // JSON Backup & Restore
+        function exportJSON() {
+            const backupData = {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                accounts,
+                historyLogs,
+                monthlyGoals,
+                recurringBills,
+                debts,
+                customCategories,
+                isPrivacyHidden,
+                currentTheme
+            };
+
+            const jsonStr = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `azzer_wallet_backup_${localDateStr(Date.now())}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('JSON Backup Exported');
+        }
+
+        function triggerJSONImport() {
+            const input = document.getElementById('importJsonInput');
+            if (input) {
+                input.value = '';
+                input.click();
+            }
+        }
+
+        function handleJSONImport(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data || (typeof data !== 'object')) {
+                        throw new Error('Invalid JSON format');
+                    }
+
+                    if (Array.isArray(data.accounts)) {
+                        accounts = data.accounts;
+                        accounts.forEach(a => {
+                            a.balance = round2(a.balance);
+                            if (typeof a.isSavings !== 'boolean') a.isSavings = /savings/i.test(a.name);
+                        });
+                    }
+
+                    if (Array.isArray(data.historyLogs)) historyLogs = data.historyLogs;
+                    if (data.monthlyGoals && typeof data.monthlyGoals === 'object') monthlyGoals = Object.assign({}, DEFAULT_GOALS, data.monthlyGoals);
+                    if (Array.isArray(data.recurringBills)) recurringBills = data.recurringBills;
+                    if (Array.isArray(data.debts)) debts = data.debts;
+                    if (Array.isArray(data.customCategories)) customCategories = data.customCategories;
+                    if (typeof data.isPrivacyHidden === 'boolean') isPrivacyHidden = data.isPrivacyHidden;
+                    if (typeof data.currentTheme === 'string' && THEMES.includes(data.currentTheme)) {
+                        currentTheme = data.currentTheme;
+                        applyTheme();
+                    }
+
+                    saveData();
+                    renderApp();
+                    showToast('Backup restored successfully!');
+                } catch (err) {
+                    alert('Failed to import JSON backup. Please select a valid Azzer Wallet backup file.');
+                    showToast('Import Failed');
+                }
+            };
+            reader.readAsText(file);
         }
 
         function renderAnalytics() {
@@ -2315,7 +2424,7 @@ Warning: this will leave an account with a negative balance.`;
             Object.entries(catTotals)
                 .sort((a, b) => b[1] - a[1])
                 .forEach(([cat, amount]) => {
-                    const pct = ((amount / totalExp) * 100).toFixed(1);
+                    const pct = totalExp > 0 ? ((amount / totalExp) * 100).toFixed(1) : '0.0';
                     const color = catColors[cat] || 'var(--primary)';
                     list.innerHTML += `
                         <div class="category-row">
@@ -2333,6 +2442,7 @@ Warning: this will leave an account with a negative balance.`;
 
         function renderBills() {
             const list = document.getElementById('billsList');
+            if (!list) return;
             list.innerHTML = '';
 
             if (recurringBills.length === 0) {
@@ -2492,15 +2602,21 @@ Warning: this will leave an account with a negative balance.`;
                 }, 0));
 
             const spendPct = monthlyGoals.spendingTarget > 0 ? Math.min((totalExpenses / monthlyGoals.spendingTarget) * 100, 100) : 0;
-            document.getElementById('spendGoalStatus').textContent = `${formatPHP(totalExpenses)} / ${formatPHP(monthlyGoals.spendingTarget)}`;
+            const spendGoalStatus = document.getElementById('spendGoalStatus');
+            if (spendGoalStatus) spendGoalStatus.textContent = `${formatPHP(totalExpenses)} / ${formatPHP(monthlyGoals.spendingTarget)}`;
+            
             const spendBar = document.getElementById('spendProgressBar');
-            spendBar.style.width = `${spendPct}%`;
-            spendBar.style.background = spendPct >= 90 ? 'var(--rose)' : (spendPct >= 70 ? 'var(--amber)' : 'var(--emerald)');
+            if (spendBar) {
+                spendBar.style.width = `${spendPct}%`;
+                spendBar.style.background = spendPct >= 90 ? 'var(--rose)' : (spendPct >= 70 ? 'var(--amber)' : 'var(--emerald)');
+            }
 
             const savePct = monthlyGoals.savingsTarget > 0 ? Math.max(0, Math.min((totalSavingsDeposits / monthlyGoals.savingsTarget) * 100, 100)) : 0;
-            document.getElementById('saveGoalStatus').textContent = `${totalSavingsDeposits < 0 ? '-' : ''}${formatPHP(Math.abs(totalSavingsDeposits))} / ${formatPHP(monthlyGoals.savingsTarget)}`;
+            const saveGoalStatus = document.getElementById('saveGoalStatus');
+            if (saveGoalStatus) saveGoalStatus.textContent = `${totalSavingsDeposits < 0 ? '-' : ''}${formatPHP(Math.abs(totalSavingsDeposits))} / ${formatPHP(monthlyGoals.savingsTarget)}`;
+            
             const saveBar = document.getElementById('saveProgressBar');
-            saveBar.style.width = `${savePct}%`;
+            if (saveBar) saveBar.style.width = `${savePct}%`;
         }
 
         function saveGoals() {
@@ -2522,6 +2638,7 @@ Warning: this will leave an account with a negative balance.`;
             const barTotal = accounts.reduce((sum, a) => sum + Math.max(0, a.balance), 0);
 
             const bar = document.getElementById('distributionBar');
+            if (!bar) return;
             const keep = new Set();
             accounts.forEach(acc => {
                 const pct = barTotal > 0 ? (Math.max(0, acc.balance) / barTotal) * 100 : 0;
@@ -2542,66 +2659,47 @@ Warning: this will leave an account with a negative balance.`;
             [...bar.children].forEach(c => { if (!keep.has(c.dataset.id)) c.remove(); });
         }
 
-        // Updated Render Accounts function with Card Quick Actions
         function renderAccounts() {
             const container = document.getElementById('accountsList');
+            if (!container) return;
             container.innerHTML = '';
 
             accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = 'glass-card account-card';
-                card.style.setProperty('--acc-color', acc.color);
+                card.onclick = () => openSingleEdit(acc.id);
+
+                const accentColor = acc.color || '#0a84ff';
 
                 card.innerHTML = `
-                    <div class="account-card-header" onclick="openSingleEdit('${esc(acc.id)}')">
-                        <div class="account-left">
-                            <div class="account-badge" style="background: ${esc(acc.color)}20; color: ${esc(acc.color)};">
-                                ${esc(acc.iconText)}
-                            </div>
-                            <div class="account-info">
-                                <h4>${esc(acc.name)}</h4>
-                                <span>${acc.isSavings ? 'Savings Account' : 'Main Wallet'} • Tap to edit</span>
-                            </div>
+                    <div class="account-left">
+                        <div class="account-badge" style="background: ${esc(accentColor)}22; color: ${esc(accentColor)}; border: 1px solid ${esc(accentColor)}35;">
+                            ${esc(acc.iconText)}
                         </div>
-                        <div class="account-right">
-                            <div class="balance-text ${acc.balance < 0 ? 'negative' : ''}" style="${acc.balance < 0 ? 'color: var(--rose);' : ''}">
-                                ${formatPHP(acc.balance)}
+                        <div class="account-details">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <h4 class="account-name">${esc(acc.name)}</h4>
+                                ${acc.isSavings ? '<span class="savings-pill">Savings</span>' : ''}
                             </div>
+                            <span class="account-tag">
+                                <span style="width: 5px; height: 5px; border-radius: 50%; background: ${esc(accentColor)}; display: inline-block;"></span>
+                                Tap to manage
+                            </span>
                         </div>
                     </div>
-                    
-                    <!-- Inner Card Quick Actions -->
-                    <div class="account-quick-actions" onclick="event.stopPropagation()">
-                        <button class="card-act-btn exp" onclick="quickCardTx('${esc(acc.id)}', 'expense')">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Expense
-                        </button>
-                        <button class="card-act-btn inc" onclick="quickCardTx('${esc(acc.id)}', 'income')">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Income
-                        </button>
-                        <button class="card-act-btn trf" onclick="quickCardTransfer('${esc(acc.id)}')">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Transfer
-                        </button>
+                    <div class="account-balance-wrap">
+                        <div style="font-size: 16px; font-weight: 800; ${acc.balance < 0 ? 'color: var(--rose);' : ''}" class="balance-text account-balance-amount">
+                            ${formatPHP(acc.balance)}
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Quick Card Transaction Action Handlers
-        function quickCardTx(accId, type) {
-            openModal('addTransactionModal');
-            document.getElementById('txAccount').value = accId;
-            setTxType(type);
-        }
-
-        function quickCardTransfer(accId) {
-            openModal('transferModal');
-            document.getElementById('transferFrom').value = accId;
-            updateTransferPreview();
-        }
-
         function renderHistory() {
             const container = document.getElementById('historyList');
+            if (!container) return;
             container.innerHTML = '';
             openRow = null;
 
@@ -2628,7 +2726,8 @@ Warning: this will leave an account with a negative balance.`;
                 return matchType && matchAcc && matchDate && matchSearch;
             });
             
-            document.getElementById('txCountBadge').textContent = filtered.length;
+            const badge = document.getElementById('txCountBadge');
+            if (badge) badge.textContent = filtered.length;
 
             if (filtered.length === 0) {
                 container.innerHTML = `<div style="text-align: center; font-size: 12px; color: var(--text-muted); padding: 20px;">No matching transactions found.</div>`;
@@ -2678,46 +2777,13 @@ Warning: this will leave an account with a negative balance.`;
             }
         }
 
-        function togglePrivacy() {
-            isPrivacyHidden = !isPrivacyHidden;
-            applyPrivacy();
-            saveData();
-        }
-
-        function applyPrivacy() {
-            const balances = document.querySelectorAll('.balance-text');
-            const svg = document.getElementById('privacySvg');
-            const pl = document.getElementById('privacyLabel');
-            if (pl) pl.textContent = isPrivacyHidden ? 'Show Balances' : 'Hide Balances';
-            if (isPrivacyHidden) {
-                balances.forEach(el => el.classList.add('blur-balance'));
-                svg.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
-            } else {
-                balances.forEach(el => el.classList.remove('blur-balance'));
-                svg.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
-            }
-        }
-
-        function openModal(modalId) {
-            if (modalId === 'addTransactionModal') populateTxAccounts();
-            if (modalId === 'addDebtModal') populateDebtAccounts();
-            if (modalId === 'quickUpdateModal') buildQuickInputs();
-            if (modalId === 'transferModal') buildTransferSelects();
-            if (modalId === 'manageCategoriesModal') renderCustomCategories();
-            if (modalId === 'goalsModal') {
-                document.getElementById('targetSpendingInput').value = monthlyGoals.spendingTarget;
-                document.getElementById('targetSavingsInput').value = monthlyGoals.savingsTarget;
-            }
-            document.getElementById(modalId).classList.add('open');
-        }
-
-        function closeModal(modalId) {
-            if (modalId === 'addTransactionModal') {
-                pendingPayBillId = null;
-                document.getElementById('txAmount').value = '';
-                document.getElementById('txNote').value = '';
-            }
-            document.getElementById(modalId).classList.remove('open');
+        function populateTxAccounts() {
+            const sel = document.getElementById('txAccount');
+            if (!sel) return;
+            sel.innerHTML = '';
+            accounts.forEach(a => {
+                sel.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)} (${formatPHP(a.balance)})</option>`;
+            });
         }
 
         function populateDebtAccounts() {
@@ -2766,6 +2832,7 @@ Warning: this will leave an account with a negative balance.`;
             activeTxType = type;
             const exp = document.getElementById('typeExpBtn');
             const inc = document.getElementById('typeIncBtn');
+            if (!exp || !inc) return;
             if (type === 'expense') {
                 exp.style.background = 'rgba(244,63,94,0.15)';
                 exp.style.borderColor = 'rgba(244,63,94,0.3)';
@@ -2781,14 +2848,6 @@ Warning: this will leave an account with a negative balance.`;
                 exp.style.borderColor = 'var(--border-color)';
                 exp.style.color = 'var(--text-muted)';
             }
-        }
-
-        function populateTxAccounts() {
-            const sel = document.getElementById('txAccount');
-            sel.innerHTML = '';
-            accounts.forEach(a => {
-                sel.innerHTML += `<option value="${esc(a.id)}">${esc(a.name)} (${formatPHP(a.balance)})</option>`;
-            });
         }
 
         function submitTransaction() {
@@ -2930,6 +2989,7 @@ Warning: this will leave an account with a negative balance.`;
 
         function buildQuickInputs() {
             const container = document.getElementById('quickInputsContainer');
+            if (!container) return;
             container.innerHTML = '';
             accounts.forEach(acc => {
                 container.innerHTML += `
@@ -2960,6 +3020,7 @@ Warning: this will leave an account with a negative balance.`;
         function buildTransferSelects() {
             const from = document.getElementById('transferFrom');
             const to = document.getElementById('transferTo');
+            if (!from || !to) return;
             from.innerHTML = '';
             to.innerHTML = '';
             accounts.forEach(a => {
@@ -2972,27 +3033,37 @@ Warning: this will leave an account with a negative balance.`;
         }
 
         function updateTransferPreview() {
-            const fromId = document.getElementById('transferFrom').value;
-            const toId = document.getElementById('transferTo').value;
-            const amountInput = parseFloat(document.getElementById('transferAmount').value) || 0;
+            const fromId = document.getElementById('transferFrom')?.value;
+            const toId = document.getElementById('transferTo')?.value;
+            const amountInput = parseFloat(document.getElementById('transferAmount')?.value) || 0;
 
             const fromAcc = accounts.find(a => a.id === fromId);
             const toAcc = accounts.find(a => a.id === toId);
 
             if (fromAcc) {
-                document.getElementById('transferFromBalance').textContent = formatPHP(fromAcc.balance);
-                document.getElementById('previewFromName').textContent = fromAcc.name;
+                const fromBal = document.getElementById('transferFromBalance');
+                const fromName = document.getElementById('previewFromName');
+                const fromAfter = document.getElementById('previewFromAfter');
+                if (fromBal) fromBal.textContent = formatPHP(fromAcc.balance);
+                if (fromName) fromName.textContent = fromAcc.name;
                 const newFromBal = fromAcc.balance - amountInput;
-                document.getElementById('previewFromAfter').textContent = `${formatPHP(newFromBal)}`;
-                document.getElementById('previewFromAfter').style.color = newFromBal < 0 ? 'var(--rose)' : 'var(--text-main)';
+                if (fromAfter) {
+                    fromAfter.textContent = `${formatPHP(newFromBal)}`;
+                    fromAfter.style.color = newFromBal < 0 ? 'var(--rose)' : 'var(--text-main)';
+                }
             }
 
             if (toAcc) {
-                document.getElementById('transferToBalance').textContent = formatPHP(toAcc.balance);
-                document.getElementById('previewToName').textContent = toAcc.name;
+                const toBal = document.getElementById('transferToBalance');
+                const toName = document.getElementById('previewToName');
+                const toAfter = document.getElementById('previewToAfter');
+                if (toBal) toBal.textContent = formatPHP(toAcc.balance);
+                if (toName) toName.textContent = toAcc.name;
                 const newToBal = toAcc.balance + amountInput;
-                document.getElementById('previewToAfter').textContent = `${formatPHP(newToBal)}`;
-                document.getElementById('previewToAfter').style.color = 'var(--emerald)';
+                if (toAfter) {
+                    toAfter.textContent = `${formatPHP(newToBal)}`;
+                    toAfter.style.color = 'var(--emerald)';
+                }
             }
 
             applyPrivacy();
@@ -3033,7 +3104,7 @@ Warning: this will leave an account with a negative balance.`;
         function setTxFilter(type, btn) {
             currentTxFilter = type;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            if (btn) btn.classList.add('active');
             renderHistory();
         }
 
@@ -3056,9 +3127,7 @@ Warning: this will leave an account with a negative balance.`;
         }
 
         function confirmReset() {
-            if (confirm('Reset ALL data?
-
-Balances, history, bills, IOUs, goals and categories go back to defaults. Theme and privacy settings are kept.')) {
+            if (confirm('Reset ALL data?\n\nBalances, history, bills, IOUs, goals and categories go back to defaults. Theme and privacy settings are kept.')) {
                 accounts = clone(DEFAULT_ACCOUNTS);
                 historyLogs = [];
                 recurringBills = clone(DEFAULT_BILLS);
@@ -3075,9 +3144,12 @@ Balances, history, bills, IOUs, goals and categories go back to defaults. Theme 
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+            const toastMsg = document.getElementById('toastMsg');
+            if (toastMsg) toastMsg.textContent = msg;
+            if (toast) {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            }
         }
     </script>
 </body>
