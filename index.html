@@ -1620,11 +1620,14 @@
             },
             setItem(key, value) {
                 try {
-                    if (typeof localStorage !== 'undefined') {
-                        localStorage.setItem(key, value);
-                    }
-                } catch (e) {}
-                memoryStore[key] = String(value);
+                    if (typeof localStorage === 'undefined') throw new Error('Browser storage is unavailable');
+                    localStorage.setItem(key, String(value));
+                    memoryStore[key] = String(value);
+                    return true;
+                } catch (e) {
+                    memoryStore[key] = String(value);
+                    return false;
+                }
             },
             removeItem(key) {
                 try {
@@ -1706,7 +1709,7 @@
         let recurringBills = clone(DEFAULT_BILLS);
 
         const DEFAULT_GOALS = {
-            spendingTarget: 20000,
+            spendingTarget: 5000,
             savingsTarget: 10000
         };
         let monthlyGoals = clone(DEFAULT_GOALS);
@@ -1717,6 +1720,7 @@
         let debts = clone(DEFAULT_DEBTS);
 
         let currentTheme = 'dark';
+        let storageWarningActive = false;
 
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && accounts.length) renderApp(); });
 
@@ -1784,16 +1788,21 @@
         }
 
         function saveData() {
-            try {
-                SafeStorage.setItem('wallet_accounts', JSON.stringify(accounts));
-                SafeStorage.setItem('wallet_history', JSON.stringify(historyLogs));
-                SafeStorage.setItem('wallet_privacy', isPrivacyHidden);
-                SafeStorage.setItem('wallet_theme', currentTheme);
-                SafeStorage.setItem('wallet_goals', JSON.stringify(monthlyGoals));
-                SafeStorage.setItem('wallet_bills', JSON.stringify(recurringBills));
-                SafeStorage.setItem('wallet_debts', JSON.stringify(debts));
-                SafeStorage.setItem('wallet_categories', JSON.stringify(customCategories));
-            } catch (e) {}
+            const entries = [
+                ['wallet_accounts', JSON.stringify(accounts)],
+                ['wallet_history', JSON.stringify(historyLogs)],
+                ['wallet_privacy', String(isPrivacyHidden)],
+                ['wallet_theme', currentTheme],
+                ['wallet_goals', JSON.stringify(monthlyGoals)],
+                ['wallet_bills', JSON.stringify(recurringBills)],
+                ['wallet_debts', JSON.stringify(debts)],
+                ['wallet_categories', JSON.stringify(customCategories)]
+            ];
+            let persisted = true;
+            entries.forEach(([key, value]) => { if (!SafeStorage.setItem(key, value)) persisted = false; });
+            storageWarningActive = !persisted;
+            if (!persisted) showToast('Warning: changes are temporary — browser storage is unavailable or full. Export a backup.');
+            return persisted;
         }
 
         function setTheme(name) {
@@ -2349,40 +2358,91 @@
         function handleJSONImport(event) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Backup is too large. Please select a file smaller than 10 MB.');
+                event.target.value = '';
+                return;
+            }
 
             const reader = new FileReader();
+            reader.onerror = () => { alert('Could not read the selected backup file.'); };
             reader.onload = function(e) {
+                const previous = {
+                    accounts, historyLogs, monthlyGoals, recurringBills, debts, customCategories,
+                    isPrivacyHidden, currentTheme
+                };
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (!data || (typeof data !== 'object')) {
-                        throw new Error('Invalid JSON format');
+                    if (!data || Array.isArray(data) || typeof data !== 'object' || data.version !== 1 ||
+                        !Array.isArray(data.accounts) || !Array.isArray(data.historyLogs) ||
+                        !Array.isArray(data.recurringBills) || !Array.isArray(data.debts) ||
+                        !Array.isArray(data.customCategories)) {
+                        throw new Error('Unsupported or incomplete backup format');
                     }
+                    if (!data.accounts.length) throw new Error('Backup contains no wallet accounts');
 
-                    if (Array.isArray(data.accounts)) {
-                        accounts = data.accounts;
-                        accounts.forEach(a => {
-                            a.balance = round2(a.balance);
-                            if (typeof a.isSavings !== 'boolean') a.isSavings = /savings/i.test(a.name);
-                        });
-                    }
+                    const nextAccounts = data.accounts.map((a, i) => {
+                        if (!a || typeof a !== 'object' || !String(a.id ?? '').trim() || !String(a.name ?? '').trim()) throw new Error(`Invalid account at row ${i + 1}`);
+                        const balance = Number(a.balance);
+                        if (!Number.isFinite(balance) || Math.abs(balance) > 1e12) throw new Error(`Invalid balance for ${a.name}`);
+                        return { ...a, balance: round2(balance), isSavings: typeof a.isSavings === 'boolean' ? a.isSavings : /savings/i.test(a.name) };
+                    });
+                    const accountIds = nextAccounts.map(a => String(a.id));
+                    if (new Set(accountIds).size !== accountIds.length) throw new Error('Duplicate wallet IDs found');
 
-                    if (Array.isArray(data.historyLogs)) historyLogs = data.historyLogs;
-                    if (data.monthlyGoals && typeof data.monthlyGoals === 'object') monthlyGoals = Object.assign({}, DEFAULT_GOALS, data.monthlyGoals);
-                    if (Array.isArray(data.recurringBills)) recurringBills = data.recurringBills;
-                    if (Array.isArray(data.debts)) debts = data.debts;
-                    if (Array.isArray(data.customCategories)) customCategories = data.customCategories;
-                    if (typeof data.isPrivacyHidden === 'boolean') isPrivacyHidden = data.isPrivacyHidden;
-                    if (typeof data.currentTheme === 'string' && THEMES.includes(data.currentTheme)) {
-                        currentTheme = data.currentTheme;
-                        applyTheme();
-                    }
+                    const nextHistory = data.historyLogs.map((item, i) => {
+                        if (!item || typeof item !== 'object' || !Number.isFinite(Number(item.amount)) || Math.abs(Number(item.amount)) > 1e12 || !String(item.type ?? '').trim()) throw new Error(`Invalid transaction/history record at row ${i + 1}`);
+                        return { ...item, amount: round2(Number(item.amount)) };
+                    });
+                    const nextBills = data.recurringBills.map((b, i) => {
+                        if (!b || typeof b !== 'object' || !String(b.name ?? '').trim() || !Number.isFinite(Number(b.amount)) || Number(b.amount) <= 0 || !Number.isInteger(Number(b.dueDay)) || Number(b.dueDay) < 1 || Number(b.dueDay) > 31) throw new Error(`Invalid bill at row ${i + 1}`);
+                        return { ...b, amount: round2(Number(b.amount)), dueDay: Number(b.dueDay) };
+                    });
+                    const nextDebts = data.debts.map((d, i) => {
+                        if (!d || typeof d !== 'object' || !String(d.person ?? '').trim() || !Number.isFinite(Number(d.amount)) || Number(d.amount) < 0) throw new Error(`Invalid debt at row ${i + 1}`);
+                        return { ...d, amount: round2(Number(d.amount)) };
+                    });
+                    const nextCategories = data.customCategories.map((c, i) => {
+                        if (!c || typeof c !== 'object' || !String(c.name ?? '').trim()) throw new Error(`Invalid category at row ${i + 1}`);
+                        return { ...c, name: String(c.name).trim() };
+                    });
+                    const goals = Object.assign({}, DEFAULT_GOALS, data.monthlyGoals || {});
+                    ['spendingTarget', 'savingsTarget'].forEach(k => {
+                        if (!Number.isFinite(Number(goals[k])) || Number(goals[k]) < 0 || Number(goals[k]) > 1e12) throw new Error(`Invalid ${k}`);
+                        goals[k] = round2(Number(goals[k]));
+                    });
+                    const theme = THEMES.includes(data.currentTheme) ? data.currentTheme : 'dark';
+                    if (!confirm(`Restore this backup from ${data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'an unknown date'}? This replaces the wallet data currently in this browser.`)) return;
 
-                    saveData();
+                    accounts = nextAccounts;
+                    historyLogs = nextHistory;
+                    monthlyGoals = goals;
+                    recurringBills = nextBills;
+                    debts = nextDebts;
+                    customCategories = nextCategories;
+                    isPrivacyHidden = data.isPrivacyHidden === true;
+                    currentTheme = theme;
+                    applyTheme();
+                    if (!saveData()) throw new Error('Browser storage could not save the restored backup.');
                     renderApp();
                     showToast('Backup restored successfully!');
                 } catch (err) {
-                    alert('Failed to import JSON backup. Please select a valid Azzer Wallet backup file.');
-                    showToast('Import Failed');
+                    Object.assign(window, {});
+                    accounts = previous.accounts;
+                    historyLogs = previous.historyLogs;
+                    monthlyGoals = previous.monthlyGoals;
+                    recurringBills = previous.recurringBills;
+                    debts = previous.debts;
+                    customCategories = previous.customCategories;
+                    isPrivacyHidden = previous.isPrivacyHidden;
+                    currentTheme = previous.currentTheme;
+                    applyTheme();
+                    saveData();
+                    renderApp();
+                    alert(`Import failed: ${err.message || 'Please select a valid Azzer Wallet backup.'}`);
+                    showToast('Import Failed — original data kept in memory');
+                } finally {
+                    event.target.value = '';
                 }
             };
             reader.readAsText(file);
@@ -2863,6 +2923,10 @@
             const acc = accounts.find(a => a.id === accId);
             if (!acc) return;
 
+            if (pendingPayBillId !== null && activeTxType !== 'expense') {
+                showToast('A bill can only be marked paid with an expense transaction.');
+                return;
+            }
             if (activeTxType === 'expense' && !confirmOverspend(acc, amt)) return;
 
             const note = (document.getElementById('txNote').value || '').trim();
@@ -3002,19 +3066,24 @@
         }
 
         function saveAllBalances() {
-            const inputs = document.querySelectorAll('.quick-input');
-            inputs.forEach(input => {
+            const inputs = Array.from(document.querySelectorAll('.quick-input'));
+            const updates = [];
+            for (const input of inputs) {
                 const id = input.getAttribute('data-id');
-                const val = round2(parseFloat(input.value));
+                const raw = input.value.trim();
+                const val = Number(raw);
                 const acc = accounts.find(a => a.id === id);
-                if (acc && !isNaN(val)) {
-                    acc.balance = val;
+                if (!acc || raw === '' || !Number.isFinite(val) || Math.abs(val) > 1e12) {
+                    showToast('Please enter a valid balance for every wallet. No changes were made.');
+                    return;
                 }
-            });
+                updates.push([acc, round2(val)]);
+            }
+            updates.forEach(([acc, val]) => { acc.balance = val; });
             saveData();
             renderApp();
             closeModal('quickUpdateModal');
-            showToast('All balances updated');
+            showToast('Wallet balances updated');
         }
 
         function buildTransferSelects() {
@@ -3145,7 +3214,9 @@
         function showToast(msg) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
-            if (toastMsg) toastMsg.textContent = msg;
+            const visibleMessage = storageWarningActive && !String(msg).toLowerCase().includes('temporary')
+                ? `${msg} · Not saved after refresh — export a backup.` : msg;
+            if (toastMsg) toastMsg.textContent = visibleMessage;
             if (toast) {
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 2000);
