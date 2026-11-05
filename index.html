@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Wallet Balance & Recurring Pay Tracker</title>
+    <title>Azzer Wallet - Balance & Recurring Pay Tracker</title>
     <meta name="theme-color" id="themeColorMeta" content="#000000">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Azzer Wallet">
     <script>try{var t=localStorage.getItem("wallet_theme");if(["light","dark","glass","amoled"].indexOf(t)>-1)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         /* ===== THEMES: amoled / dark / light / glass ===== */
         :root {
@@ -197,15 +199,6 @@
             transform: translateY(-1px) scale(1.1);
         }
 
-        .app-container {
-            padding-top: calc(20px + env(safe-area-inset-top));
-            padding-bottom: calc(110px + env(safe-area-inset-bottom));
-        }
-
-        .modal-content {
-            padding-bottom: calc(96px + env(safe-area-inset-bottom));
-        }
-
         .top-bar { position: relative; z-index: 50; }
         .menu-wrap { position: relative; }
         .dropdown {
@@ -264,7 +257,7 @@
             background-image: var(--bg-image);
             background-attachment: fixed;
             color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -278,7 +271,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 24px 20px calc(120px + env(safe-area-inset-bottom)) 20px;
+            padding: calc(20px + env(safe-area-inset-top)) 20px calc(110px + env(safe-area-inset-bottom)) 20px;
             position: relative;
         }
 
@@ -310,7 +303,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Header Fixes */
         header {
             display: flex;
             flex-direction: column;
@@ -451,7 +443,7 @@
             margin-top: 20px;
         }
 
-        /* iOS Liquid Action Buttons Grid */
+        /* Actions Grid */
         .grid-actions {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -498,7 +490,6 @@
             color: var(--text-main);
         }
 
-        /* Accounts List */
         main {
             flex: 1;
             display: flex;
@@ -605,7 +596,6 @@
             letter-spacing: -0.4px;
         }
 
-        /* History */
         .history-section {
             display: flex;
             flex-direction: column;
@@ -720,7 +710,7 @@
         .badge-income { background: rgba(48, 209, 88, 0.15); color: var(--emerald); border: 1px solid rgba(48, 209, 88, 0.3); }
         .badge-expense { background: rgba(255, 69, 58, 0.15); color: var(--rose); border: 1px solid rgba(255, 69, 58, 0.3); }
 
-        /* iOS Liquid Sheet Modals */
+        /* Modals */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -749,7 +739,7 @@
             -webkit-backdrop-filter: blur(30px) saturate(200%);
             border-top: 1px solid var(--glass-border);
             border-radius: 36px 36px 0 0;
-            padding: 32px 22px calc(34px + env(safe-area-inset-bottom));
+            padding: 32px 22px calc(96px + env(safe-area-inset-bottom));
             display: flex;
             flex-direction: column;
             gap: 18px;
@@ -866,8 +856,6 @@
         .swipe-row.dragging .swipe-act { transition: none; }
         .swipe-act.edit { left: 0; background: var(--primary); }
         .swipe-act.del { right: 0; background: var(--rose); }
-        .swipe-row.removing { height: 0 !important; opacity: 0; margin-bottom: -8px;
-            transition: height 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, margin 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
 
         html.theme-anim *, html.theme-anim *::before { transition: background-color 0.45s ease, color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease !important; }
 
@@ -964,11 +952,10 @@
             <div class="glass-card net-worth-card">
                 <p style="font-size: 12px; font-weight: 500; color: var(--text-muted);">Total Net Worth</p>
                 <h2 id="totalBalance" class="balance-text">₱0.00</h2>
-                
                 <div class="distribution-bar" id="distributionBar"></div>
             </div>
 
-            <!-- Quick Action Buttons -->
+            <!-- Quick Actions Grid -->
             <div class="grid-actions">
                 <button class="btn-action btn-primary-action" onclick="openModal('addTransactionModal')">
                     + Log
@@ -982,15 +969,15 @@
             </div>
         </header>
 
-        <!-- Main Section with Tabs -->
+        <!-- Main Content Panes -->
         <main>
             <!-- TAB 1: DASHBOARD -->
             <div id="tab-dashboard" class="tab-pane active">
-                <!-- Monthly Cash Flow Card -->
+                <!-- Cash Flow Card -->
                 <div class="glass-card goals-card">
                     <div class="section-title" style="margin-bottom: -4px;">
                         <span>Monthly Cash Flow</span>
-                        <span id="cashFlowNetBadge" style="font-size: 11px; font-weight: 800; color: var(--emerald); font-family: inherit;">+₱0.00 Net</span>
+                        <span id="cashFlowNetBadge" style="font-size: 11px; font-weight: 800; color: var(--emerald);">+₱0.00 Net</span>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
                         <div style="background: rgba(48, 209, 88, 0.1); border: 1px solid rgba(48, 209, 88, 0.25); border-radius: 18px; padding: 12px 14px;">
@@ -1011,7 +998,7 @@
                     </div>
                 </div>
 
-                <!-- Monthly Goals Tracker -->
+                <!-- Goals Tracker -->
                 <div class="glass-card goals-card">
                     <div class="section-title" style="margin-bottom: -4px;">
                         <span>Monthly Goals Tracker</span>
@@ -1041,14 +1028,13 @@
                     </div>
                 </div>
 
-                <!-- Recent Transaction History Preview -->
+                <!-- Recent Transactions -->
                 <div class="history-section">
                     <div class="section-title">
                         <span>Recent Transactions</span>
                         <span id="txCountBadge" style="background: var(--surface-card); padding: 2px 8px; border-radius: 10px; font-size: 10px;">0</span>
                     </div>
 
-                    <!-- Transaction Search Input -->
                     <div style="margin-bottom: 8px;">
                         <input type="text" id="txSearchInput" class="form-input" onkeyup="renderHistory()" placeholder="🔍 Search transactions..." style="padding: 10px 14px; font-size: 12px; border-radius: 18px;">
                     </div>
@@ -1086,12 +1072,12 @@
                     </div>
                     <div id="totalAnalyticsSpend" style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: -6px; margin-bottom: 4px;">₱0.00 Spent</div>
                     <div id="categoryBreakdownList" style="display: flex; flex-direction: column; gap: 10px;">
-                        <!-- Dynamically populated -->
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 4: BILLS, RECURRING & IOU -->
+            <!-- TAB 4: BILLS & PAY -->
             <div id="tab-bills" class="tab-pane">
                 <!-- Recurring Pay Section -->
                 <div class="glass-card bills-card">
@@ -1101,7 +1087,7 @@
                     </div>
                     <p style="font-size: 11px; color: var(--text-muted); margin-top: -6px;">Auto-deduct or auto-credit subscriptions, salary, or recurring bills on scheduled dates.</p>
                     <div id="recurringList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;">
-                        <!-- Dynamically populated -->
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
 
@@ -1112,7 +1098,7 @@
                         <button onclick="openModal('addDebtModal')" style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer;">+ Add Debt/Loan</button>
                     </div>
                     <div id="debtsList" style="display: flex; flex-direction: column; gap: 8px;">
-                        <!-- Dynamically populated -->
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
 
@@ -1123,7 +1109,7 @@
                         <button onclick="openModal('addBillModal')" style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer;">+ Add Bill</button>
                     </div>
                     <div id="billsList" style="display: flex; flex-direction: column; gap: 8px;">
-                        <!-- Dynamically populated -->
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
             </div>
@@ -1176,7 +1162,7 @@
         </div>
     </div>
 
-    <!-- 2. RECURRING PAY MODAL -->
+    <!-- 2. Recurring Pay Modal -->
     <div class="modal-overlay" id="recurringModal">
         <div style="position: absolute; inset: 0;" onclick="closeModal('recurringModal')"></div>
         <div class="modal-content">
@@ -1238,7 +1224,7 @@
         </div>
     </div>
 
-    <!-- 3. Single Edit Modal -->
+    <!-- 3. Edit Account Modal -->
     <div class="modal-overlay" id="singleEditModal">
         <div style="position: absolute; inset: 0;" onclick="closeModal('singleEditModal')"></div>
         <div class="modal-content">
@@ -1384,7 +1370,7 @@
         </div>
     </div>
 
-    <!-- 7. Goals Settings Modal -->
+    <!-- 7. Goals Modal -->
     <div class="modal-overlay" id="goalsModal">
         <div style="position: absolute; inset: 0;" onclick="closeModal('goalsModal')"></div>
         <div class="modal-content">
@@ -1541,7 +1527,7 @@
         </div>
     </div>
 
-    <!-- 13. Theme Modal -->
+    <!-- 13. Theme Selection Modal -->
     <div class="modal-overlay" id="themeModal">
         <div style="position: absolute; inset: 0;" onclick="closeModal('themeModal')"></div>
         <div class="modal-content">
@@ -1552,22 +1538,22 @@
             <div class="theme-options">
                 <button class="theme-option" data-theme-opt="amoled" onclick="setTheme('amoled')">
                     <span class="theme-swatch" style="background: #000000; border: 1px solid rgba(255,255,255,0.2);"></span>
-                    <span><div class="t-name">AMOLED Black</div><div class="t-desc">Pure black for OLED & eyes</div></span>
+                    <span><div class="t-name">AMOLED Black</div><div class="t-desc">Pure black for OLED display</div></span>
                     <span class="theme-check">✓</span>
                 </button>
                 <button class="theme-option" data-theme-opt="dark" onclick="setTheme('dark')">
                     <span class="theme-swatch" style="background: linear-gradient(135deg, #2a3f8f 0%, #05070f 70%);"></span>
-                    <span><div class="t-name">Dark</div><div class="t-desc">Madilim, madaling sa mata</div></span>
+                    <span><div class="t-name">Dark</div><div class="t-desc">Sleek midnight blue</div></span>
                     <span class="theme-check">✓</span>
                 </button>
                 <button class="theme-option" data-theme-opt="light" onclick="setTheme('light')">
                     <span class="theme-swatch" style="background: linear-gradient(135deg, #cfe2ff 0%, #ffe0f0 55%, #d8f7ea 100%);"></span>
-                    <span><div class="t-name">Light</div><div class="t-desc">Maliwanag at malinis</div></span>
+                    <span><div class="t-name">Light</div><div class="t-desc">Clean bright aesthetic</div></span>
                     <span class="theme-check">✓</span>
                 </button>
                 <button class="theme-option" data-theme-opt="glass" onclick="setTheme('glass')">
                     <span class="theme-swatch" style="background: linear-gradient(135deg, #3a7bff 0%, #c04bff 55%, #ff6a9e 100%);"></span>
-                    <span><div class="t-name">Liquid Glass</div><div class="t-desc">Translucent na may makulay na background</div></span>
+                    <span><div class="t-name">Liquid Glass</div><div class="t-desc">Translucent backdrop gradient</div></span>
                     <span class="theme-check">✓</span>
                 </button>
             </div>
@@ -1596,15 +1582,15 @@
         </div>
     </div>
 
-    <!-- Toast -->
+    <!-- Toast Notification -->
     <div id="toast"><span id="toastMsg">Success</span></div>
 
-    <!-- Hidden File Input for JSON Backup Restore -->
+    <!-- Hidden Input for Backup File Reading -->
     <input type="file" id="importJsonInput" accept=".json" style="display: none;" onchange="handleJSONImport(event)">
 
-    <!-- Core Script Engine -->
+    <!-- Core JavaScript Controller Engine -->
     <script>
-        /* ===== TOP-LEVEL GLOBAL NAVIGATION & MODAL CONTROLLERS ===== */
+        /* ===== GLOBAL NAVIGATION & MODALS ===== */
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1662,7 +1648,7 @@
             if (el) el.classList.remove('open');
         }
 
-        /* ===== SAFE STORAGE & DATA ENGINE ===== */
+        /* ===== DATA PERSISTENCE & STORAGE SYSTEM ===== */
         const memoryStore = {};
         const SafeStorage = {
             getItem(key) {
@@ -1709,7 +1695,6 @@
         let activeEditAccountId = null;
         let activeTxType = 'expense';
         let currentTxFilter = 'all';
-        let currentAccFilter = 'all';
 
         const clone = o => JSON.parse(JSON.stringify(o));
         const round2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
@@ -1717,7 +1702,7 @@
         function confirmOverspend(acc, amt) {
             const after = round2(acc.balance - amt);
             if (after >= 0) return true;
-            return confirm(`${acc.name} only has ${formatPHP(acc.balance)}.\n\nThis will leave it at ${formatPHP(after)}. Continue?`);
+            return confirm(`${acc.name} balance is ${formatPHP(acc.balance)}.\n\nThis transaction leaves a negative balance of ${formatPHP(after)}. Continue?`);
         }
 
         const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -1807,7 +1792,7 @@
 
         document.addEventListener('visibilitychange', () => { 
             if (document.visibilityState === 'visible' && accounts.length) {
-                processRecurringPayEngine(true);
+                processRecurringPayEngine(false);
                 renderApp(); 
             }
         });
@@ -1834,6 +1819,8 @@
                 accounts = Array.isArray(parsedAccounts) && parsedAccounts.length
                     ? parsedAccounts.filter(a => a && a.id != null && a.name && Number.isFinite(Number(a.balance))).map(a => ({
                         ...a, id: String(a.id), name: String(a.name), balance: round2(Number(a.balance)),
+                        iconText: String(a.iconText || String(a.name).slice(0, 2)).slice(0, 6),
+                        color: /^#[0-9a-f]{3,8}$/i.test(String(a.color || '')) ? a.color : '#0a84ff',
                         isSavings: typeof a.isSavings === 'boolean' ? a.isSavings : /savings/i.test(String(a.name))
                     }))
                     : clone(DEFAULT_ACCOUNTS);
@@ -1857,10 +1844,9 @@
                 currentTheme = THEMES.includes(themeStored) ? themeStored : 'amoled';
                 applyTheme();
             } catch (e) {
-                console.error('Wallet data load warning:', e);
+                console.error('Wallet data load error:', e);
                 accounts = clone(DEFAULT_ACCOUNTS);
                 historyLogs = [];
-                showToast('Some saved data could not be loaded. Restore from a recent JSON backup if needed.');
             }
         }
 
@@ -1878,7 +1864,7 @@
             } catch (e) {}
         }
 
-        /* ===== RECURRING PAY AUTO-EXECUTION ENGINE ===== */
+        /* ===== RECURRING PAY ENGINE ===== */
         function calculateNextDate(currentNextDateStr, frequency) {
             const base = /^\d{4}-\d{2}-\d{2}$/.test(String(currentNextDateStr || ''))
                 ? (() => { const [y, m, d] = currentNextDateStr.split('-').map(Number); return new Date(y, m - 1, d, 12); })()
@@ -1936,7 +1922,7 @@
 
             if (changed) {
                 saveData();
-                showToast(`Auto-processed ${executedCount} recurring item(s): ${executedNames.join(', ')}`);
+                showToast(`Processed ${executedCount} recurring payment(s)`);
             } else if (isInteractive) {
                 showToast('Recurring Pay status up to date.');
             }
@@ -2103,7 +2089,7 @@
             container.innerHTML = '';
 
             if (recurringPayItems.length === 0) {
-                container.innerHTML = `<div style="text-align: center; font-size: 12px; color: var(--text-muted); padding: 10px;">No recurring payments or subscriptions configured.</div>`;
+                container.innerHTML = `<div style="text-align: center; font-size: 12px; color: var(--text-muted); padding: 10px;">No recurring payments configured.</div>`;
                 return;
             }
 
@@ -2126,7 +2112,7 @@
                             <div style="font-size: 10px; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap;">
                                 <span>🔄 ${esc(item.frequency)}</span>
                                 <span>💳 ${esc(accName)}</span>
-                                <span>📅 Next: ${esc(item.nextDate)} ${isDue ? '<strong style="color: var(--amber);">(Due Now)</strong>' : ''}</span>
+                                <span>📅 Next: ${esc(item.nextDate)} ${isDue ? '<strong style="color: var(--amber);">(Due)</strong>' : ''}</span>
                             </div>
                         </div>
 
@@ -2171,7 +2157,7 @@
                 setTimeout(() => root.classList.remove('theme-anim'), 600);
             }
             saveData();
-            showToast(`Theme: ${name === 'glass' ? 'LIQUID GLASS' : name.toUpperCase()}`);
+            showToast(`Theme: ${name.toUpperCase()}`);
             closeModal('themeModal');
         }
 
@@ -2273,9 +2259,12 @@
             if (!log) return;
             const acc = accounts.find(a => a.id === log.accountId);
             const toAcc = accounts.find(a => a.id === log.toId);
-            const revertible = ((log.type === 'income' || log.type === 'expense') && acc) || (log.type === 'transfer' && acc && toAcc);
+
             let msg = `Delete "${log.title}"?`;
-            if (revertible) msg += `\n\n${formatPHP(log.amount)} will be reversed in your balance.`;
+            if ((log.type === 'income' || log.type === 'expense') && acc) {
+                msg += `\n\n${formatPHP(log.amount)} will be reversed from ${acc.name}.`;
+            }
+
             if (!confirm(msg)) { closeOpenRow(); return; }
 
             if (log.type === 'expense' && acc) acc.balance = round2(acc.balance + log.amount);
@@ -2336,18 +2325,12 @@
         function logTs(l) {
             if (typeof l.ts === 'number' && isFinite(l.ts)) return l.ts;
             if (typeof l.id === 'number' && l.id > 1e12) return l.id;
-            if (!/^[A-Za-z]{3,}\.? \d{1,2}$/.test(l.date || '')) return Date.now();
-            const guess = Date.parse(`${l.date} ${new Date().getFullYear()}`);
-            return isFinite(guess) ? guess : Date.now();
+            return Date.now();
         }
 
         function isThisMonth(l, now = new Date()) {
             const d = new Date(logTs(l));
             return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-        }
-
-        function isToday(l, now = new Date()) {
-            return isThisMonth(l, now) && new Date(logTs(l)).getDate() === now.getDate();
         }
 
         function logDateLabel(l) {
@@ -2360,7 +2343,6 @@
 
         function renderApp() {
             if (rollBills()) saveData();
-            populateAccFilterSelect();
             populateCategorySelect();
             renderSummary();
             renderCashFlow();
@@ -2555,7 +2537,7 @@
             saveData();
             renderApp();
             closeModal('settleDebtModal');
-            showToast(acc ? `Settled ${d.person} & balance updated` : `Settled record for ${d.person}`);
+            showToast(acc ? `Settled ${d.person} & updated balance` : `Settled record for ${d.person}`);
         }
 
         function deleteDebt(debtId) {
@@ -2687,19 +2669,14 @@
                             color: /^#[0-9a-f]{3,8}$/i.test(String(a.color || '')) ? a.color : '#0a84ff',
                             isSavings: typeof a.isSavings === 'boolean' ? a.isSavings : /savings/i.test(String(a.name)) };
                     });
-                    if (new Set(validAccounts.map(a => a.id)).size !== validAccounts.length) throw new Error('Duplicate wallet account IDs');
 
                     const validHistory = data.historyLogs === undefined ? [] : data.historyLogs;
-                    if (!Array.isArray(validHistory) || validHistory.some(x => !x || typeof x !== 'object')) throw new Error('Invalid transaction history');
-                    const validArray = (key) => data[key] === undefined ? null : (Array.isArray(data[key]) ? data[key] : (() => { throw new Error('Invalid ' + key); })());
-                    const nextBills = validArray('recurringBills');
-                    const nextRecurring = validArray('recurringPayItems');
-                    const nextDebts = validArray('debts');
-                    const nextCategories = validArray('customCategories');
-                    const nextGoals = data.monthlyGoals === undefined ? null : data.monthlyGoals;
-                    if (nextGoals !== null && (!nextGoals || typeof nextGoals !== 'object' || Array.isArray(nextGoals))) throw new Error('Invalid monthly goals');
+                    const nextBills = Array.isArray(data.recurringBills) ? data.recurringBills : null;
+                    const nextRecurring = Array.isArray(data.recurringPayItems) ? data.recurringPayItems : null;
+                    const nextDebts = Array.isArray(data.debts) ? data.debts : null;
+                    const nextCategories = Array.isArray(data.customCategories) ? data.customCategories : null;
+                    const nextGoals = data.monthlyGoals && typeof data.monthlyGoals === 'object' ? data.monthlyGoals : null;
 
-                    // Apply only after the entire file has passed validation.
                     accounts = validAccounts;
                     historyLogs = validHistory.map(l => ({ ...l, ts: Number.isFinite(Number(l.ts)) ? Number(l.ts) : logTs(l) }));
                     if (nextGoals) monthlyGoals = Object.assign({}, DEFAULT_GOALS, nextGoals);
@@ -2714,18 +2691,13 @@
                     applyPrivacy();
                     saveData();
                     renderApp();
-                    showToast('Backup restored successfully!');
+                    showToast('Backup restored!');
                 } catch (err) {
-                    console.error('JSON import failed:', err);
-                    alert('Import failed: this file is not a valid Azzer Wallet backup. Your current wallet data was not changed.');
-                    showToast('Import Failed');
+                    console.error('JSON import error:', err);
+                    showToast('Import Failed: Invalid File');
                 } finally {
                     if (input) input.value = '';
                 }
-            };
-            reader.onerror = function() {
-                showToast('Unable to read backup file');
-                input.value = '';
             };
             reader.readAsText(file);
         }
@@ -2913,10 +2885,6 @@
             showToast('Bill deleted');
         }
 
-        function populateAccFilterSelect() {
-            // Placeholder helper for robust compatibility
-        }
-
         function renderGoals() {
             const totalExpenses = historyLogs
                 .filter(l => l.type === 'expense' && isThisMonth(l))
@@ -3035,11 +3003,9 @@
             openRow = null;
 
             const searchQuery = (document.getElementById('txSearchInput')?.value || '').toLowerCase();
-            const now = new Date();
 
             const filtered = historyLogs.filter(log => {
                 const matchType = currentTxFilter === 'all' || log.type === currentTxFilter;
-                const matchAcc = currentAccFilter === 'all' || log.accountId === currentAccFilter || log.accountId === 'all';
 
                 let matchSearch = true;
                 if (searchQuery) {
@@ -3047,7 +3013,7 @@
                     matchSearch = textContent.includes(searchQuery);
                 }
 
-                return matchType && matchAcc && matchSearch;
+                return matchType && matchSearch;
             });
             
             const badge = document.getElementById('txCountBadge');
