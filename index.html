@@ -462,7 +462,7 @@
             color: var(--text-main);
         }
 
-        /* Accounts List */
+        /* Accounts List Redesign & Quick Action Buttons */
         main {
             flex: 1;
             display: flex;
@@ -484,27 +484,49 @@
         .accounts-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
 
         .account-card {
-            padding: 18px 20px;
+            padding: 20px 22px;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 14px;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
-            border-left: 4px solid transparent;
+            border-radius: 24px;
+            background: var(--surface-card);
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-elevation-1);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .account-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 6px;
+            background: var(--acc-color, var(--primary));
+            border-radius: 24px 0 0 24px;
         }
 
         .account-card:hover {
+            transform: translateY(-3px);
             box-shadow: var(--shadow-glass);
-            transform: translateY(-2px);
-            background: var(--fill-3);
+            background: var(--surface-hover);
         }
 
         .account-card:active {
-            transform: scale(0.97);
+            transform: scale(0.985);
+        }
+
+        .account-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .account-left {
@@ -514,16 +536,78 @@
         }
 
         .account-badge {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
             font-size: 14px;
-            box-shadow: var(--shadow-elevation-1);
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.2);
         }
+
+        .account-info h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.2px;
+        }
+
+        .account-info span {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 2px;
+            display: block;
+        }
+
+        .account-right {
+            text-align: right;
+        }
+
+        .account-right .balance-text {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            color: var(--text-main);
+        }
+
+        .account-quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .card-act-btn {
+            background: var(--fill-2);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            border-radius: 12px;
+            padding: 8px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .card-act-btn:hover {
+            background: var(--fill-4);
+        }
+
+        .card-act-btn:active {
+            transform: scale(0.95);
+        }
+
+        .card-act-btn.exp { color: var(--rose); }
+        .card-act-btn.inc { color: var(--emerald); }
+        .card-act-btn.trf { color: var(--primary); }
 
         /* History */
         .history-section {
@@ -788,7 +872,7 @@
         .goals-card [style*="rgba(48, 209, 88, 0.1)"], .goals-card [style*="rgba(255, 69, 58, 0.1)"] {
             border-color: transparent !important; border-radius: 20px !important; }
 
-        .account-card { border-radius: 24px; padding: 16px 18px; }
+        .account-card { border-radius: 24px; padding: 18px 20px; }
         .history-item, .bill-item { border-radius: 20px; box-shadow: none; }
         .filter-btn { padding: 7px 16px; font-size: 12px; }
         .filter-btn.active { box-shadow: none; }
@@ -851,8 +935,8 @@
         .btn-action, .icon-btn, .filter-btn, .btn-submit, .bill-pay-btn, .theme-option, .account-card {
             transition: transform 0.4s var(--spring), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.3s ease, color 0.25s ease; }
         .btn-action:active, .icon-btn:active, .filter-btn:active, .btn-submit:active, .bill-pay-btn:active { transform: scale(0.94); transition-duration: 0.12s; }
-        .account-card:active { transform: scale(0.975); transition-duration: 0.12s; }
-        @media (hover: hover) { .account-card:hover { transform: translateY(-2px); } }
+        .account-card:active { transform: scale(0.985); transition-duration: 0.12s; }
+        @media (hover: hover) { .account-card:hover { transform: translateY(-3px); } }
 
         /* iOS sheet curve */
         .modal-overlay { transition: opacity 0.35s ease; }
@@ -1548,16 +1632,16 @@
         // Money is kept in whole centavos to avoid floating-point drift (0.1 + 0.2 = 0.30000000000000004)
         const round2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-        // #8: spending that would push an account below zero asks for confirmation (returns true = go ahead)
         function confirmOverspend(acc, amt) {
             const after = round2(acc.balance - amt);
             if (after >= 0) return true;
-            return confirm(`${acc.name} only has ${formatPHP(acc.balance)}.\n\nThis will leave it at ${formatPHP(after)}. Continue?`);
+            return confirm(`${acc.name} only has ${formatPHP(acc.balance)}.
+
+This will leave it at ${formatPHP(after)}. Continue?`);
         }
 
         const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
-        // #7: a bill is "paid" only for the month it was paid in; a new month resets it
         function rollBills() {
             const key = monthKey();
             let changed = false;
@@ -1567,7 +1651,6 @@
             return changed;
         }
 
-        // Unique, always-increasing ids (Date.now() alone can repeat within the same millisecond)
         let lastUid = 0;
         function uid() {
             let t = Date.now();
@@ -1576,12 +1659,10 @@
             return t;
         }
 
-        // History: keep up to HISTORY_LIMIT logs in storage; show HISTORY_PAGE at a time
         const HISTORY_LIMIT = 10000;
         const HISTORY_PAGE = 50;
         let historyVisible = HISTORY_PAGE;
 
-        // Tab Navigation Switcher
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1592,7 +1673,6 @@
             document.querySelector('.tab-nav').style.setProperty('--tab-i', idx);
         }
 
-        // Default Categories State
         const DEFAULT_CATEGORIES = [
             { name: 'Food & Dining', emoji: '🍔' },
             { name: 'Bills & Utilities', emoji: '⚡' },
@@ -1604,21 +1684,18 @@
         ];
         let customCategories = clone(DEFAULT_CATEGORIES);
 
-        // Bills State
         const DEFAULT_BILLS = [
             { id: 1, name: 'Internet / Fiber', amount: 1500, dueDay: 15, paid: false },
             { id: 2, name: 'Spotify Premium', amount: 149, dueDay: 25, paid: false }
         ];
         let recurringBills = clone(DEFAULT_BILLS);
 
-        // Goals State
         const DEFAULT_GOALS = {
             spendingTarget: 20000,
             savingsTarget: 10000
         };
         let monthlyGoals = clone(DEFAULT_GOALS);
 
-        // Debts / IOU State
         const DEFAULT_DEBTS = [
             { id: 1, person: 'Mark', amount: 500, type: 'lent', settled: false }
         ];
@@ -1626,8 +1703,6 @@
 
         let currentTheme = 'dark';
 
-        // Initialize on Load
-        // Coming back to the app on a new day/month: refresh so monthly bills reset and totals are current
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && accounts.length) renderApp(); });
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -1647,10 +1722,7 @@
                 const catsStored = SafeStorage.getItem('wallet_categories');
 
                 accounts = accStored ? JSON.parse(accStored) : JSON.parse(JSON.stringify(DEFAULT_ACCOUNTS));
-                
-                // Repair floating-point drift already stored in balances
                 accounts.forEach(a => { a.balance = round2(a.balance); });
-                // Older data has no savings flag: set it once from the name, after that the checkbox decides
                 accounts.forEach(a => { if (typeof a.isSavings !== 'boolean') a.isSavings = /savings/i.test(a.name); });
 
                 historyLogs = histStored ? JSON.parse(histStored) : [
@@ -1665,7 +1737,6 @@
 
                 historyLogs.forEach(l => { if (typeof l.ts !== 'number') l.ts = logTs(l); });
 
-                // Older transfers have no toId: recover it from the "From ➔ To" title when it is unambiguous
                 historyLogs.forEach(l => {
                     if (l.type !== 'transfer' || l.toId) return;
                     const parts = String(l.title || '').split(' ➔ ');
@@ -1678,11 +1749,9 @@
                     }
                 });
 
-                // Bills marked paid by older versions have no month: treat them as paid this month, then apply the monthly reset
                 recurringBills.forEach(b => { if (b.paid && !b.paidMonth) b.paidMonth = monthKey(); });
                 rollBills();
 
-                // Make ids unique (repairs duplicates from older versions)
                 [historyLogs, recurringBills, debts].forEach(list => list.forEach(x => {
                     if (typeof x.id === 'number' && x.id > lastUid) lastUid = x.id;
                 }));
@@ -1736,7 +1805,6 @@
                 b.classList.toggle('active', b.dataset.themeOpt === currentTheme));
         }
 
-        // Header dropdown
         function toggleMenu(e) {
             if (e) e.stopPropagation();
             const open = document.getElementById('dropdownMenu').classList.toggle('open');
@@ -1752,7 +1820,6 @@
         });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
 
-        // ===== Motion helpers =====
         const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         function animateNumber(el, to) {
@@ -1770,7 +1837,6 @@
             el._raf = requestAnimationFrame(step);
         }
 
-        // ===== Swipe to Edit / Delete =====
         const SWIPE_REVEAL = 88;
         let openRow = null;
         let activeEditTxId = null;
@@ -1840,11 +1906,17 @@
             const toAcc = accounts.find(a => a.id === log.toId);
             const revertible = ((log.type === 'income' || log.type === 'expense') && acc) || (log.type === 'transfer' && acc && toAcc);
             let msg = `Delete "${log.title}"?`;
-            if (revertible) msg += `\n\n${formatPHP(log.amount)} will be reversed in your balance.`;
-            else if (['income', 'expense', 'transfer'].includes(log.type)) msg += `\n\nNote: the account for this entry no longer exists (or the transfer details are missing), so your balances will NOT change.`;
+            if (revertible) msg += `
+
+${formatPHP(log.amount)} will be reversed in your balance.`;
+            else if (['income', 'expense', 'transfer'].includes(log.type)) msg += `
+
+Note: the account for this entry no longer exists (or the transfer details are missing), so your balances will NOT change.`;
             const goesNegative = revertible && ((log.type === 'income' && round2(acc.balance - log.amount) < 0) ||
                 (log.type === 'transfer' && round2(toAcc.balance - log.amount) < 0));
-            if (goesNegative) msg += `\n\nWarning: this will leave an account with a negative balance.`;
+            if (goesNegative) msg += `
+
+Warning: this will leave an account with a negative balance.`;
             if (!confirm(msg)) { closeOpenRow(); return; }
 
             if (log.type === 'expense' && acc) acc.balance = round2(acc.balance + log.amount);
@@ -1903,7 +1975,6 @@
             showToast('Transaction updated');
         }
 
-        // ===== PWA: install prompt + service worker =====
         let deferredInstall = null;
         const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
         const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1933,14 +2004,11 @@
             return (n < 0 ? '-' : '') + '₱' + Math.abs(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        // Escape user-entered text before it goes into innerHTML templates
         function esc(v) {
             return String(v ?? '').replace(/[&<>"']/g, ch =>
                 ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
         }
 
-        // ===== Log dates: every log carries a real timestamp (ts, in ms) =====
-        // Older logs only have a "Nov 5" string; their id was Date.now() at creation, so ts = id.
         function logTs(l) {
             if (typeof l.ts === 'number' && isFinite(l.ts)) return l.ts;
             if (typeof l.id === 'number' && l.id > 1e12) return l.id;
@@ -1978,7 +2046,6 @@
             applyPrivacy();
         }
 
-        // Render Cash Flow Monthly Card
         function renderCashFlow() {
             const monthlyIncome = historyLogs
                 .filter(l => l.type === 'income' && isThisMonth(l))
@@ -1998,7 +2065,6 @@
             badge.style.color = net >= 0 ? 'var(--emerald)' : 'var(--rose)';
         }
 
-        // Render Category Select Options
         function populateCategorySelect() {
             const sel = document.getElementById('txCategory');
             if (!sel) return;
@@ -2050,7 +2116,6 @@
             showToast('Category removed');
         }
 
-        // Render Debts & Loans
         function renderDebts() {
             const list = document.getElementById('debtsList');
             list.innerHTML = '';
@@ -2088,7 +2153,6 @@
             });
         }
 
-        // Settling opens a small picker: which account did the money go into / come out of?
         let activeSettleDebtId = null;
 
         function openSettleDebt(debtId) {
@@ -2133,7 +2197,6 @@
             settleDebt(activeSettleDebtId, document.getElementById('settleDebtAccount').value);
         }
 
-        // accId = account the money moved through; '' = just mark as settled
         function settleDebt(debtId, accId) {
             const d = debts.find(item => item.id === debtId);
             if (!d || d.settled) return;
@@ -2168,19 +2231,15 @@
             showToast('Record deleted');
         }
 
-        // Fast Amount Shortcuts
         function addTxShortcut(val) {
             const input = document.getElementById('txAmount');
             const current = parseFloat(input.value) || 0;
             input.value = (current + val).toFixed(2);
         }
 
-        // Export CSV
-        // One CSV cell: always quoted, inner quotes doubled, and text that starts with = + - @ is
-        // prefixed with ' so Excel/Sheets never run it as a formula.
         function csvCell(v) {
             let t = String(v ?? '');
-            if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+            if (/^[=+\-@	]/.test(t)) t = "'" + t;
             return '"' + t.replace(/"/g, '""') + '"';
         }
 
@@ -2205,11 +2264,10 @@
                     accObj ? accObj.name : 'All', ts ? localDateStr(ts) : '', l.note || ''
                 ]);
             });
-            // Amount stays a plain number (not quoted text) so spreadsheets can sum it
-            const csv = rows.map((r, i) => r.map((c, k) => (i > 0 && k === 1) ? String(Number(c) || 0) : csvCell(c)).join(',')).join('\r\n');
+            const csv = rows.map((r, i) => r.map((c, k) => (i > 0 && k === 1) ? String(Number(c) || 0) : csvCell(c)).join(',')).join('
+');
 
-            // BOM so Excel reads UTF-8 correctly (₱, ➔, emoji); Blob avoids data-URI problems with # and size
-            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -2221,7 +2279,6 @@
             showToast('CSV Exported');
         }
 
-        // Render Visual Category Analytics
         function renderAnalytics() {
             const list = document.getElementById('categoryBreakdownList');
             if (!list) return;
@@ -2274,7 +2331,6 @@
                 });
         }
 
-        // Render Recurring Bills
         function renderBills() {
             const list = document.getElementById('billsList');
             list.innerHTML = '';
@@ -2425,7 +2481,6 @@
                 .filter(l => l.type === 'expense' && isThisMonth(l))
                 .reduce((sum, l) => sum + l.amount, 0);
 
-            // Net saved this month = money into savings accounts minus money out (transfers between two savings accounts cancel out)
             const isSavingsId = id => { const a = accounts.find(x => x.id === id); return !!a && a.isSavings === true; };
             const totalSavingsDeposits = round2(historyLogs
                 .filter(l => isThisMonth(l))
@@ -2487,6 +2542,7 @@
             [...bar.children].forEach(c => { if (!keep.has(c.dataset.id)) c.remove(); });
         }
 
+        // Updated Render Accounts function with Card Quick Actions
         function renderAccounts() {
             const container = document.getElementById('accountsList');
             container.innerHTML = '';
@@ -2494,25 +2550,54 @@
             accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.className = 'glass-card account-card';
-                card.style.borderLeftColor = acc.color;
-                card.onclick = () => openSingleEdit(acc.id);
+                card.style.setProperty('--acc-color', acc.color);
 
                 card.innerHTML = `
-                    <div class="account-left">
-                        <div class="account-badge" style="background: ${esc(acc.color)}15; color: ${esc(acc.color)};">
-                            ${esc(acc.iconText)}
+                    <div class="account-card-header" onclick="openSingleEdit('${esc(acc.id)}')">
+                        <div class="account-left">
+                            <div class="account-badge" style="background: ${esc(acc.color)}20; color: ${esc(acc.color)};">
+                                ${esc(acc.iconText)}
+                            </div>
+                            <div class="account-info">
+                                <h4>${esc(acc.name)}</h4>
+                                <span>${acc.isSavings ? 'Savings Account' : 'Main Wallet'} • Tap to edit</span>
+                            </div>
                         </div>
-                        <div>
-                            <h4 style="font-size: 14px; font-weight: 700;">${esc(acc.name)}</h4>
-                            <span style="font-size: 11px; color: var(--text-muted);">${acc.isSavings ? 'Savings • ' : ''}Tap to edit</span>
+                        <div class="account-right">
+                            <div class="balance-text ${acc.balance < 0 ? 'negative' : ''}" style="${acc.balance < 0 ? 'color: var(--rose);' : ''}">
+                                ${formatPHP(acc.balance)}
+                            </div>
                         </div>
                     </div>
-                    <div style="font-size: 16px; font-weight: 800;${acc.balance < 0 ? ' color: var(--rose);' : ''}" class="balance-text">
-                        ${formatPHP(acc.balance)}
+                    
+                    <!-- Inner Card Quick Actions -->
+                    <div class="account-quick-actions" onclick="event.stopPropagation()">
+                        <button class="card-act-btn exp" onclick="quickCardTx('${esc(acc.id)}', 'expense')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Expense
+                        </button>
+                        <button class="card-act-btn inc" onclick="quickCardTx('${esc(acc.id)}', 'income')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Income
+                        </button>
+                        <button class="card-act-btn trf" onclick="quickCardTransfer('${esc(acc.id)}')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> Transfer
+                        </button>
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        // Quick Card Transaction Action Handlers
+        function quickCardTx(accId, type) {
+            openModal('addTransactionModal');
+            document.getElementById('txAccount').value = accId;
+            setTxType(type);
+        }
+
+        function quickCardTransfer(accId) {
+            openModal('transferModal');
+            document.getElementById('transferFrom').value = accId;
+            updateTransferPreview();
         }
 
         function renderHistory() {
@@ -2593,7 +2678,6 @@
             }
         }
 
-        // Privacy Mode
         function togglePrivacy() {
             isPrivacyHidden = !isPrivacyHidden;
             applyPrivacy();
@@ -2614,7 +2698,6 @@
             }
         }
 
-        // Modals Control
         function openModal(modalId) {
             if (modalId === 'addTransactionModal') populateTxAccounts();
             if (modalId === 'addDebtModal') populateDebtAccounts();
@@ -2630,7 +2713,6 @@
 
         function closeModal(modalId) {
             if (modalId === 'addTransactionModal') {
-                // Closing/cancelling must not leave a pending bill (or its prefilled amount/note) for the next log
                 pendingPayBillId = null;
                 document.getElementById('txAmount').value = '';
                 document.getElementById('txNote').value = '';
@@ -2680,7 +2762,6 @@
             document.getElementById('debtAmountInput').value = '';
         }
 
-        // Transaction Type Toggle
         function setTxType(type) {
             activeTxType = type;
             const exp = document.getElementById('typeExpBtn');
@@ -2753,7 +2834,6 @@
             document.getElementById('txNote').value = '';
         }
 
-        // Single Edit
         function openSingleEdit(id) {
             activeEditAccountId = id;
             const acc = accounts.find(a => a.id === id);
@@ -2848,7 +2928,6 @@
             }
         }
 
-        // Quick Update All
         function buildQuickInputs() {
             const container = document.getElementById('quickInputsContainer');
             container.innerHTML = '';
@@ -2878,7 +2957,6 @@
             showToast('All balances updated');
         }
 
-        // Transfer Feature Functions
         function buildTransferSelects() {
             const from = document.getElementById('transferFrom');
             const to = document.getElementById('transferTo');
@@ -2978,7 +3056,9 @@
         }
 
         function confirmReset() {
-            if (confirm('Reset ALL data?\n\nBalances, history, bills, IOUs, goals and categories go back to defaults. Theme and privacy settings are kept.')) {
+            if (confirm('Reset ALL data?
+
+Balances, history, bills, IOUs, goals and categories go back to defaults. Theme and privacy settings are kept.')) {
                 accounts = clone(DEFAULT_ACCOUNTS);
                 historyLogs = [];
                 recurringBills = clone(DEFAULT_BILLS);
