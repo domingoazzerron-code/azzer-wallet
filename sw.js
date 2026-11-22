@@ -1,6 +1,6 @@
 /* Walks & Renewals service worker: makes the app work offline.
    Bump V when you change this file. Page updates arrive on their own when online. */
-const V="walks-v7";
+const V="walks-v8";
 const CORE=["./","./index.html","./manifest.webmanifest","./icon-180.png","./icon-192.png","./icon-512.png"];
 const FONT=/(^|\.)fonts\.(googleapis|gstatic)\.com$/;
 

@@ -383,6 +383,173 @@ h2{text-transform:none;letter-spacing:-.02em;font-size:19px;font-weight:800;colo
 #splash small{opacity:0;color:rgba(255,255,255,.78);font-size:14px;animation:spt .55s .8s ease-out forwards}
 @keyframes spd{to{stroke-dashoffset:0}}@keyframes spp{to{scale:1}}@keyframes spt{to{opacity:1;translate:0 0}}
 @media (prefers-reduced-motion:reduce){#splash .tr{stroke-dashoffset:0}#splash .dt{scale:1}#splash b,#splash small{opacity:1;translate:none}}
+
+/* ===== v17: modern Walks + Renewals (bento, rings, rail) — scoped to #p1/#p2 ===== */
+#p1,#p2{--rx:26px;--rs:0 1px 0 color-mix(in srgb,var(--ink) 4%,transparent),0 18px 36px -26px color-mix(in srgb,var(--a) 38%,transparent)}
+:root{--seg-bg:color-mix(in srgb,var(--ink) 6%,var(--sf2))}
+.ux-i{width:16px;height:16px;flex:none}
+.ux-eb{font:600 12px/1 Geist,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.ux-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ux-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--acs);color:var(--ac2);font-size:12.5px;font-weight:600;white-space:nowrap}
+.ux-pill.ok{background:color-mix(in srgb,var(--ac) 22%,var(--sf));color:var(--ac2)}
+#p1 h2,#p2 h2{display:flex;align-items:center;gap:8px;font-size:18px;margin:30px 2px 12px}
+.ux-cnt{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--sf2);color:var(--mute);font:600 12px Geist,system-ui,sans-serif;letter-spacing:0}
+
+/* shared surfaces */
+#p1 .card,#p2 .card,#p1 .kpi{border-radius:var(--rx);border:1px solid color-mix(in srgb,var(--line) 80%,transparent);box-shadow:var(--rs)}
+#p1 .card.empty,#p2 .card.empty{padding:36px 24px;border-style:dashed;box-shadow:none;background:transparent}
+#p1 .row,#p2 .row{position:relative;padding:14px 16px;min-height:72px;border-top:0}
+#p1 .row+.row::before,#p2 .row+.row::before,#p2 .nudge+.row::before{content:"";position:absolute;top:0;left:78px;right:16px;height:1px;background:var(--line);pointer-events:none}
+#p2 .nudge+.row{border-top:0}
+
+/* segmented control */
+#p1 .seg.s3{background:var(--seg-bg);padding:4px;border-radius:16px;gap:4px;margin:18px 0 6px}
+#p1 .seg.s3 button{border-radius:12px;min-height:40px;font-weight:600;color:var(--mute)}
+#p1 .seg.s3 button.on{background:var(--sf);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 10px -4px rgba(0,0,0,.18)}
+
+/* walks: bento */
+.ux-bento{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 4px}
+.ux-tile{position:relative;background:var(--sf);border:1px solid color-mix(in srgb,var(--line) 80%,transparent);border-radius:var(--rx);padding:18px;box-shadow:var(--rs);min-width:0}
+.ux-wk{grid-column:1/-1;display:grid;gap:4px;padding:20px 20px 16px;overflow:hidden}
+.ux-wk::after{content:"";position:absolute;right:-60px;top:-70px;width:200px;height:200px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--a) 20%,transparent),transparent);pointer-events:none}
+.ux-fig{display:flex;align-items:baseline;gap:8px;margin-top:10px}
+.ux-fig b{font:800 clamp(44px,13vw,60px)/.95 var(--fd);letter-spacing:-.055em}
+.ux-fig span{font:600 17px Geist,system-ui,sans-serif;color:var(--mute)}
+.ux-wk>small{font-size:13.5px}
+.ux-wk .plot{height:112px;margin:18px 2px 10px}
+.ux-wk .pbars{gap:8px}
+.ux-sm{display:grid;gap:2px;align-content:end;min-height:112px}
+.ux-sm b{font:800 38px/1 var(--fd);letter-spacing:-.05em;margin-top:14px}
+.ux-sm small{font-size:13.5px}
+.ux-ico{display:grid;place-items:center;width:40px;height:40px;border-radius:14px;background:var(--acs);color:var(--ac2);position:absolute;top:16px;left:16px}
+.ux-ico svg{width:20px;height:20px}
+.ux-ico.fl{background:color-mix(in srgb,#FF8A3D 18%,var(--sf));color:#E8691B}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ux-ico.fl{color:#FFA866}}
+:root[data-theme=dark] .ux-ico.fl{color:#FFA866}
+.ux-sm{padding-top:64px}
+
+/* weekly bars: soft pills */
+#p1 .pb i{max-width:none;width:100%;border-radius:12px;background:color-mix(in srgb,var(--a) 26%,var(--sf2))}
+#p1 .pb i.m{background:linear-gradient(180deg,color-mix(in srgb,var(--a) 70%,#fff),var(--a))}
+#p1 .pb i.z{background:var(--sf2);height:6px!important}
+#p1 .pb i.r{background:none;box-shadow:inset 0 0 0 1.5px var(--line);height:14%!important}
+#p1 .pgoal{left:-2px;right:-2px;border-top:1.5px dashed color-mix(in srgb,var(--mute) 70%,transparent);opacity:.55}
+#p1 .plabs{gap:8px}
+#p1 .plabs b{font-size:12px;font-weight:600}
+#p1 .plabs small{font-size:11.5px;color:var(--mute);font-weight:500}
+#p1 .plabs .t b{color:var(--ink)}
+#p1 .plabs b{position:relative}#p1 .plabs .t b::after{content:"";position:absolute;left:50%;top:-8px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--a)}
+
+/* compact kpi strip on Calendar / Stats */
+#p1 .kpi{background:var(--sf);border-radius:var(--rx);margin-top:2px}
+#p1 .kpi>div{padding:16px 18px}
+#p1 .kpi b{font-family:var(--fd);font-weight:800;letter-spacing:-.04em}
+
+/* feed */
+#p1 .dgp{margin-top:26px}
+#p1 .fgh{margin:0 6px 10px;align-items:center}
+#p1 .fgh h3{font:800 19px var(--fd);letter-spacing:-.03em}
+#p1 .fgh small{background:var(--sf2);border-radius:999px;padding:4px 10px;font-weight:600;font-size:12.5px;color:var(--mute)}
+#p1 .fr{gap:14px;align-items:center}
+#p1 .fr .th,#p1 .fr .ti{width:58px;height:58px;border-radius:18px}
+#p1 .fr .grow{gap:3px}
+#p1 .fr .grow b{font:800 22px/1.1 var(--fd);letter-spacing:-.04em}
+#p1 .fr .nt{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mts{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:2px}
+.mts i{display:inline-flex;align-items:center;gap:5px;font-style:normal;font-size:12.5px;font-weight:500;color:var(--mute);white-space:nowrap}
+.mts .ux-i{width:13px;height:13px;opacity:.8}
+.ux-ring{--sz:48px;position:relative;flex:none;width:var(--sz);height:var(--sz);border-radius:50%;display:grid;place-items:center}
+.ux-ring::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--a) calc(var(--p)*1%),color-mix(in srgb,var(--ink) 9%,var(--sf2)) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4.5px))}
+.ux-ring.full::before{background:var(--a)}
+.ux-ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 12.5px Geist,system-ui,sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ux-ring sup{font-size:8px;font-weight:600;margin-left:1px;line-height:1;position:static;align-self:flex-start;margin-top:15px;color:var(--mute)}
+
+/* stats: record tiles + milestones */
+#p1 .card.sec2:has(>.rec){background:none;border:0;box-shadow:none;padding:0;overflow:visible}#p1 .rec{gap:10px}
+#p1 .rec>div{position:relative;background:var(--sf);border:1px solid color-mix(in srgb,var(--line) 80%,transparent);box-shadow:var(--rs);border-radius:20px;padding:14px;gap:3px;align-content:start}
+.ux-ric{display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:var(--acs);color:var(--ac2);margin-bottom:8px;box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 5%,transparent)}
+.ux-ric svg{width:17px;height:17px}
+#p1 .rec small{font-weight:500}
+#p1 .rec b{font:800 22px var(--fd);letter-spacing:-.04em;color:var(--ink)}
+#p1 .mil{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+#p1 .mb{border:0;background:var(--sf2);border-radius:16px;padding:11px 12px;opacity:.75}
+#p1 .mb.on{opacity:1;background:var(--acs);color:var(--ac2);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--a) 30%,transparent)}
+#p1 .mb b{font:800 15px var(--fd);letter-spacing:-.02em}
+#p1 .sec2{padding:18px}
+#p1 .bar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--ink) 8%,var(--sf2))}
+#p1 .bar i{border-radius:99px}
+
+/* calendar heatmap */
+#p1 .mcal{padding:18px}
+#p1 .mch b{font:800 18px var(--fd);letter-spacing:-.03em}
+#p1 .nv{border:0;background:var(--sf2);border-radius:14px}
+#p1 .mg{gap:6px}
+#p1 .mg>span{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding-bottom:2px}
+#p1 .md{border-radius:12px;background:var(--sf2);font-weight:600;font-size:13px;color:var(--mute);transition:transform .15s}
+#p1 .md:active{transform:scale(.92)}
+#p1 .md.l1{background:color-mix(in srgb,var(--a) 22%,var(--sf2));color:var(--ink)}
+#p1 .md.l2{background:color-mix(in srgb,var(--a) 44%,var(--sf2));color:var(--ink)}
+#p1 .md.l3{background:var(--a);color:#fff}
+#p1 .md.l4{background:color-mix(in srgb,var(--a) 70%,#000);color:#fff}
+#p1 .md.rs{background:none;box-shadow:inset 0 0 0 1.5px var(--line)}
+#p1 .md.t{box-shadow:0 0 0 2px var(--sf),0 0 0 4px var(--ink)}
+#p1 .mleg .md{width:14px;height:14px;border-radius:5px}
+
+/* renewals: hero */
+#p2 .mhero{border-radius:32px;padding:22px 22px 20px;gap:2px;margin:0;box-shadow:0 24px 44px -26px color-mix(in srgb,var(--a) 75%,#000)}
+#p2 .mhero .ux-top small{font:600 12px/1 Geist,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.78)}
+#p2 .mhero .ux-pill{background:rgba(255,255,255,.16);color:#fff}
+#p2 .mhero>b{font:800 clamp(46px,14vw,62px)/1 var(--fd);letter-spacing:-.06em;margin-top:14px}
+#p2 .mh2{margin-top:14px;gap:8px}
+#p2 .mh2 span{font-size:14px;font-weight:500;color:rgba(255,255,255,.85)}
+#p2 .mh2 .c2{background:rgba(255,255,255,.18);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:#fff}
+
+/* renewals: coming-up rail */
+.ux-rh{display:flex;align-items:baseline;justify-content:space-between;margin-top:6px}
+.ux-rh h2{margin-bottom:12px}.ux-rh small{margin:0 6px 0 0;font-weight:600}
+.rail{display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:2px 16px 8px;scroll-snap-type:x proximity;scroll-padding-inline:16px;scrollbar-width:none;overscroll-behavior-x:contain}
+.rail::-webkit-scrollbar{display:none}
+.ux-rc{flex:0 0 148px;scroll-snap-align:start;display:grid;gap:4px;justify-items:start;text-align:left;padding:14px;border:1px solid color-mix(in srgb,var(--line) 80%,transparent);border-radius:24px;background:var(--sf);box-shadow:var(--rs);cursor:pointer;transition:transform .18s var(--ease)}
+.ux-rc:active{transform:scale(.96)}
+.ux-rc.hot{background:var(--wns);border-color:color-mix(in srgb,var(--wn) 28%,transparent)}
+.ux-rd{display:flex;align-items:baseline;gap:5px;margin-bottom:10px}
+.ux-rd b{font:800 26px/1 var(--fd);letter-spacing:-.05em}
+.ux-rd small{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.ux-rc.hot .ux-rd small{color:var(--wn)}
+.ux-rc .ti{width:40px;height:40px;border-radius:13px}
+.ux-rn{font-weight:600;font-size:14.5px;letter-spacing:-.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:8px}
+.ux-ra{font-size:13px;color:var(--mute);font-weight:500}
+
+/* renewals: rows */
+#p2 .sr{gap:14px}
+#p2 .ux-rc .ti.lt,#p2 .sr .ti.lt{width:48px;height:48px;border-radius:16px;font:800 20px var(--fd);color:#fff;background:linear-gradient(145deg,color-mix(in srgb,var(--c) 92%,#fff),color-mix(in srgb,var(--c) 78%,#000));box-shadow:0 8px 16px -10px var(--c)}
+#p2 .ux-rc .ti.lt{font:800 18px var(--fd)}#p2 .sr .grow{gap:2px}
+#p2 .sr .grow b{font-size:16px;letter-spacing:-.015em}
+#p2 .sr .grow small{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p2 .sr .bar{height:3px;margin-top:7px;background:color-mix(in srgb,var(--ink) 8%,var(--sf2))}
+.sr-r{display:grid;justify-items:end;gap:6px;flex:none}
+.sr-r>b{font:700 16px Geist,system-ui,sans-serif;letter-spacing:-.02em}
+.sr-r .chip{font-size:12px;padding:3px 9px}
+.chip.mute{background:var(--sf2);color:var(--mute)}
+#p2 .sr.off{opacity:.62}
+#p2 .nudge{background:color-mix(in srgb,var(--wn) 8%,var(--sf));padding:10px 14px;margin:0;border-top:1px solid var(--line)}
+#p2 .nudge .grow b{font-weight:600;color:var(--ink)}
+
+/* renewals: category breakdown */
+.ux-stack{display:flex;gap:3px;height:12px;border-radius:99px;overflow:hidden}
+.ux-stack i{display:block;min-width:6px;border-radius:99px}
+.ux-lgd{display:grid;gap:2px;margin-top:14px}
+.ux-lg{display:grid;grid-template-columns:10px 1fr auto auto;align-items:center;gap:10px;padding:9px 0}
+.ux-lg+.ux-lg{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.ux-lg i{width:10px;height:10px;border-radius:50%}
+.ux-lg span{font-weight:600}
+.ux-lg small{min-width:34px;text-align:right}
+.ux-lg b{min-width:72px;text-align:right;font-weight:700}
+#p2 .spl{display:block}
+
+/* desktop sidebar layout: keep bento from over-stretching */
+@media (min-width:900px){#p1 .ux-bento{grid-template-columns:repeat(2,1fr)}.rail{margin:0;padding-inline:0}}
+@media (max-width:360px){.ux-fig b{font-size:42px}.ux-rc{flex-basis:136px}#p1 .fr .th,#p1 .fr .ti{width:52px;height:52px}}
 </style><style id="dsk" media="not all">/* desktop: sidebar nav, two-column content, centred dialog */
 
  .vp{max-width:none;margin:0 0 0 var(--nav-w)}
@@ -467,7 +634,7 @@ const dlab=ds=>{const l=dl(parse(ds));return l===0?"Today":l===-1?"Yesterday":pa
 const fmtT=ms=>{const t=Math.floor(ms/1000);return `${p2(Math.floor(t/3600))}:${p2(Math.floor(t%3600/60))}:${p2(t%60)}`};
 let prev=null,idx=0,dk=null,lastPr=null,lastCnt=null,ringGo=false,ringFrom=0,cntGo=false,stale3=false,qt,sw=true,ld="",lastF=null,shOpen=false;
 const SC=["#5547F5","#FF7A66","#10B27F","#F5B700","#2AA8E6","#E85BA8"],hue=s=>{let n=0;for(const ch of s.name)n=(n*31+ch.charCodeAt(0))>>>0;return SC[n%6]};
-const subRow=(s,d,l)=>{const cd=s.cycle==="weekly"?7:s.cycle==="yearly"?365:30,fr=s.on?Math.max(.05,Math.min(1,1-l/cd)):0,hot=s.on&&l<=s.rem,tl=s.trial?dl(parse(s.trial)):null,nd=s.on&&l<=Math.max(s.rem,1)&&s.ck!==iso(d);return `<button class="row" data-a="editS" data-id="${s.id}"${s.on?' data-sw="stop"':""}><span class="ti lt" style="--c:${hue(s)}">${esc((s.name[0]||"?").toUpperCase())}</span><span class="grow"><b>${esc(s.name)}</b><small class="mu">${money(s.amt)} per ${CW[s.cycle]}${s.note?", "+esc(s.note):""}</small>${s.on?`<i class="bar" style="--c:${hot?"var(--wn)":hue(s)}"><i style="width:${(fr*100).toFixed(1)}%"></i></i>`:""}</span>${s.on&&tl!=null&&tl>=0?`<span class="chip wn">Trial ends ${when(tl).replace(/^./,c=>c.toLowerCase())}</span>`:`<span class="chip${hot?" wn":""}">${s.on?when(l):"Cancelled"}</span>`}</button>${nd?`<div class="nudge"><span class="grow"><b>Still using ${esc(s.name)}?</b></span><button class="btn g sm" data-a="keep" data-id="${s.id}">Keep</button><button class="btn sm" data-a="stop" data-id="${s.id}">Cancel</button></div>`:""}`};
+const subRow=(s,d,l)=>{const hot=s.on&&l<=s.rem,tl=s.trial?dl(parse(s.trial)):null,nd=s.on&&l<=Math.max(s.rem,1)&&s.ck!==iso(d),cd=s.cycle==="weekly"?7:s.cycle==="yearly"?365:30,fr=s.on?Math.max(.05,Math.min(1,1-l/cd)):0,sub=[s.on?uxDate(d):"",CW[s.cycle]?"per "+CW[s.cycle]:"",s.note?esc(s.note):""].filter(Boolean).join(" · ");return `<button class="row sr${s.on?"":" off"}" data-a="editS" data-id="${s.id}"${s.on?' data-sw="stop"':""}><span class="ti lt" style="--c:${hue(s)}">${esc((s.name[0]||"?").toUpperCase())}</span><span class="grow"><b>${esc(s.name)}</b><small class="mu">${sub||"&nbsp;"}</small>${s.on?`<i class="bar" style="--c:${hot?"var(--wn)":hue(s)}"><i style="width:${(fr*100).toFixed(1)}%"></i></i>`:""}</span><span class="sr-r"><b>${money(s.amt)}</b>${s.on&&tl!=null&&tl>=0?`<span class="chip wn">Trial ends ${when(tl).replace(/^./,c=>c.toLowerCase())}</span>`:`<span class="chip${hot?" wn":s.on?"":" mute"}">${s.on?when(l):"Cancelled"}</span>`}</span></button>${nd?`<div class="nudge"><span class="grow"><b>Still using ${esc(s.name)}?</b></span><button class="btn g sm" data-a="keep" data-id="${s.id}">Keep</button><button class="btn sm" data-a="stop" data-id="${s.id}">Cancel</button></div>`:""}`};
 
 const weekSum=t=>{if(S.wsx===iso(t))return"";const o=wOff(t);if(o!==0&&o!==6)return"";const st=o===0?addD(t,-7):wStart(t),en=addD(st,6),ps=addD(st,-7);let k=0,n=0,pk=0;for(let i=0;i<7;i++){const a=dayKm(addD(st,i)),b=dayKm(addD(ps,i));k+=a;pk+=b;if(a>0)n++}
  if(!k&&!pk)return"";const df=pk>0?Math.round((k-pk)/pk*100):null,f=x=>x.toLocaleDateString(undefined,{month:"short",day:"numeric"});
@@ -527,7 +694,7 @@ function recs(){const ws=S.walks.filter(w=>w.km>0);if(!ws.length)return null;
  let bw=null;const seen={};ws.forEach(w=>{const D=parse(w.date),k=iso(wStart(D));if(seen[k])return;seen[k]=1;const v=weekKm(D);if(!bw||v>bw.k)bw={k:v,s:k}});
  return{lw,fp,bd:{k:bd[1],d:bd[0]},bw,bs:Math.max(bestStreak(),wStreak()),n:ws.length,min:ws.reduce((a,w)=>a+(w.min||0),0)}}
 function recCard(){const r=recs();if(!r)return `<div class="card empty"><p>Your personal bests will show up here after your first walk.</p></div>`;
- const T=(l,v,sb,c)=>`<div><small>${l}</small><b style="color:${c}">${v}</b><em>${sb}</em></div>`;
+ const IC2={"Longest walk":UX.route,"Fastest pace":UX.bolt,"Best day":UX.cal,"Best week":UX.trophy,"Longest streak":UX.flame,"Time walked":UX.clock};const T=(l,v,sb,c)=>`<div><span class="ux-ric">${IC2[l]||""}</span><small>${l}</small><b>${v}</b><em>${sb}</em></div>`;
  return `<div class="card sec2"><div class="rec">${T("Longest walk",du(r.lw.km),dlab(r.lw.date),"var(--ac)")}${T("Fastest pace",r.fp?pace(r.fp):"–",r.fp?dlab(r.fp.date):`Needs a 1 ${UL()}+ walk with time`,"var(--ok)")}${T("Best day",du(r.bd.k),dlab(r.bd.d),"var(--ac)")}${T("Best week",du(r.bw.k),"Week of "+parse(r.bw.s).toLocaleDateString(undefined,{month:"short",day:"numeric"}),"var(--ok)")}${T("Longest streak",`${r.bs} ${r.bs===1?"day":"days"}`,"in a row","var(--ac)")}${T("Time walked",dur(r.min),`${r.n} ${r.n===1?"walk":"walks"}`,"var(--ok)")}</div></div>`}
 const MS=[[10,"First trail"],[25,"Park loop"],[50,"Day hiker"],[100,"Century"],[250,"Trail blazer"],[500,"Long roamer"],[1000,"Thousand club"]],MC=["#2BD39B","#2AA8E6","#7B70FF","#FF7A66","#F5B700","#E85BA8","#5547F5"];
 function milCard(){const tot=S.walks.reduce((a,w)=>a+w.km,0)*uf(),nx=MS.find(m=>tot<m[0]),lo=MS.filter(m=>tot>=m[0]).pop(),from=lo?lo[0]:0,pg=nx?(tot-from)/(nx[0]-from):1;
@@ -545,9 +712,12 @@ function calCard(){const t=today();if(!calM)calM=new Date(t.getFullYear(),t.getM
  <div class="mleg">Less<i class="md l0"></i><i class="md l1"></i><i class="md l2"></i><i class="md l3"></i><i class="md l4"></i>More</div></div>`}
 let wf="all",wq="",rp="week",wsOpen=false,wt="recent";
 const SRCH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>';
+const UXI=(d,x="")=>`<svg class="ux-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}${x}</svg>`;
+const UX={flame:UXI('<path d="M12 3c.5 3 4 4.8 4 9a4 4 0 0 1-8 0c0-1.7.7-2.9 1.7-4 .2 1.3.9 2 1.8 2.3C11.6 7.5 11.4 5.2 12 3z"/>'),clock:UXI('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),gauge:UXI('<path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l3.5-4.5"/>'),steps:UXI('<path d="M3.5 17.5V13l4.2-1.2 2.3-4.3 3 2.2 6.5 2.1a1.8 1.8 0 0 1 1 1.6v4.1z"/><path d="M3.5 17.5h17"/>'),route:UXI('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h8a3 3 0 0 0 0-6H8.5a3 3 0 0 1 0-6H16"/>'),bolt:UXI('<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>'),trophy:UXI('<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v2a3 3 0 0 0 3 3M16 6h3v2a3 3 0 0 1-3 3M12 13v4M9 20h6"/>'),cal:UXI('<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>'),sum:UXI('<circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M9.5 9.5c.6-1 1.6-1.5 2.6-1.5 1.5 0 2.4.8 2.4 1.8 0 2.4-5 1.2-5 3.8 0 1 1 1.9 2.6 1.9 1 0 2-.4 2.6-1.3"/>'),pin:UXI('<path d="M12 21s6-5.2 6-10a6 6 0 0 0-12 0c0 4.8 6 10 6 10z"/><circle cx="12" cy="11" r="2"/>')};
+const uxDate=d=>d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
 const czN=()=>(Math.min(60,wFilter().length)||1)+1;
 const czHTML=()=>{const a=wFilter().slice(0,60);return (a.length?a.map(heroW).join(""):`<div class="hero rcp"><b>No walks found</b><small>Try another filter or search.</small></div>`)+recapSlide()};
-const feedRow=w=>{const pc=Math.round(w.km/S.goal*100),meta=[w.note?esc(w.note):"",w.min?dur(w.min):"",pace(w),w.steps>0?w.steps.toLocaleString()+" steps":""].filter(Boolean).join(", ");return `<button class="row fr" data-a="viewW" data-id="${w.id}" data-sw="delW">${pu(w.photo)?`<img class="th" src="${pu(w.photo)}" alt="">`:`<span class="ti ct">${RT}</span>`}<span class="grow"><b>${du(w.km)}</b><small class="mu">${meta||"Walk"}</small><i class="cbar" role="img" aria-label="${pc}% of daily goal"><i style="--p:${Math.min(100,pc)}%"></i></i></span><span class="chip">${pc}%</span></button>`};
+const feedRow=w=>{const pc=Math.round(w.km/S.goal*100),pills=[w.min?`<i>${UX.clock}${dur(w.min)}</i>`:"",pace(w)?`<i>${UX.gauge}${pace(w)}</i>`:"",w.steps>0?`<i>${UX.steps}${w.steps.toLocaleString()}</i>`:""].filter(Boolean).join("");return `<button class="row fr" data-a="viewW" data-id="${w.id}" data-sw="delW">${pu(w.photo)?`<img class="th" src="${pu(w.photo)}" alt="">`:`<span class="ti ct">${RT}</span>`}<span class="grow"><b>${du(w.km)}</b>${w.note?`<small class="mu nt">${esc(w.note)}</small>`:""}${pills?`<span class="mts">${pills}</span>`:(w.note?"":`<small class="mu nt">Walk</small>`)}</span><span class="ux-ring${pc>=100?" full":""}" role="img" aria-label="${pc}% of daily goal" style="--p:${Math.min(100,pc)}"><b>${pc}<sup>%</sup></b></span></button>`}
 const feedHTML=()=>{const a=wFilter().slice(0,80);if(!a.length)return `<div class="card empty"><b>No walks found</b><p>Try another filter or search.</p></div>`;const g=[];a.forEach(w=>{const l=g[g.length-1];if(l&&l.d===w.date)l.w.push(w);else g.push({d:w.date,w:[w]})});const t=today();
  return g.map(x=>{const df=Math.round((t-parse(x.d))/864e5),lb=df===0?"Today":df===1?"Yesterday":df<7?parse(x.d).toLocaleDateString(undefined,{weekday:"long"}):parse(x.d).toLocaleDateString(undefined,{month:"long",day:"numeric"});return `<section class="dgp"><div class="fgh"><h3>${lb}</h3><small>${du(x.w.reduce((q,w)=>q+w.km,0))}</small></div><div class="card">${x.w.map(feedRow).join("")}</div></section>`}).join("")};
 const czRefresh=()=>{const z=$("#cf");if(z)z.innerHTML=feedHTML()};
@@ -575,7 +745,7 @@ document.addEventListener("pointerup",rsEnd);document.addEventListener("pointerc
 document.addEventListener("click",e=>{if(rsMoved){rsMoved=false;e.stopPropagation();e.preventDefault()}},true);
 document.addEventListener("keydown",e=>{const z=$("#cz");if(z&&z.contains(e.target)&&(e.key==="ArrowRight"||e.key==="ArrowLeft")){stkGo(e.key==="ArrowRight"?1:-1);z.children[si].focus()}});
 const CATS=["Streaming","Music","Software","Cloud","Shopping","Utilities","Health","Other"];
-const catRows=on=>{const g={};on.forEach(o=>{const c=o.s.cat||"Other";g[c]=(g[c]||0)+mcost(o.s)});const tot=Object.values(g).reduce((a,b)=>a+b,0)||1;return Object.entries(g).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="spr"><span class="grow"><span class="tr"><b>${c}</b><small>${money(v)}/mo, ${Math.round(v/tot*100)}%</small></span><i class="bar" style="--c:var(--ac);margin-top:6px"><i style="width:${Math.max(3,v/tot*100).toFixed(1)}%"></i></i></span></div>`).join("")};
+const catRows=on=>{const g={};on.forEach(o=>{const c=o.s.cat||"Other";g[c]=(g[c]||0)+mcost(o.s)});const tot=Object.values(g).reduce((a,b)=>a+b,0)||1,en=Object.entries(g).sort((a,b)=>b[1]-a[1]),col=i=>SC[i%SC.length];return `<div class="ux-stack" role="img" aria-label="Monthly spend by category">${en.map(([c,v],i)=>`<i style="flex:${Math.max(v,tot*.02).toFixed(2)};background:${col(i)}"></i>`).join("")}</div><div class="ux-lgd">${en.map(([c,v],i)=>`<div class="ux-lg"><i style="background:${col(i)}"></i><span>${esc(c)}</span><small>${Math.round(v/tot*100)}%</small><b>${money(v)}</b></div>`).join("")}</div>`};
 const wFilter=()=>{const t=today(),ws=iso(wStart(t)),mo=iso(t).slice(0,7),q=wq.trim().toLowerCase();let a=S.walks.slice().sort((x,y)=>y.date.localeCompare(x.date)||(y.ts||0)-(x.ts||0));
  if(wf==="week")a=a.filter(w=>w.date>=ws);if(wf==="month")a=a.filter(w=>w.date.startsWith(mo));if(wf==="photos")a=a.filter(w=>pu(w.photo));if(wf==="long")a=a.sort((x,y)=>y.km-x.km).slice(0,10);
  if(q)a=a.filter(w=>((w.note||"")+" "+w.date+" "+dlab(w.date)+" "+du(w.km)).toLowerCase().includes(q));return a};
@@ -591,16 +761,17 @@ function vWalks(){
  const bars=days.map(d=>{const v=dayKm(d),fut=d>t;return `<div class="pb">${fut?"":`<i class="${v?v>=goalOn(d)?"m":"":"z"+(isRest(d)?" r":"")}" style="height:${v?Math.max(8,v/mx*100):4}%"></i>`}</div>`}).join("");
  const labs=days.map((d,i)=>{const v=dayKm(d);return `<div class="${d.getTime()===t.getTime()?"t":""}"><b>${DN[d.getDay()][0]}</b><small>${v?dd(v):isRest(d)?"rest":"–"}</small></div>`}).join("");
  
- const wcard=`<div class="wcard"><div class="wch"><div><small>This week</small><b>${du(wk)}</b><em>of ${du(wGoal())} goal</em></div><span class="sk2">${sk} ${sk===1?"day":"days"} streak</span></div><div class="plot"><div class="pbars">${bars}</div><i class="pgoal" style="bottom:${(S.goal/mx*100).toFixed(1)}%"></i></div><div class="plabs">${labs}</div></div>`;
+ const wcard=`<section class="ux-bento"><article class="ux-tile ux-wk"><div class="ux-top"><span class="ux-eb">This week</span><span class="ux-pill${pct>=100?" ok":""}">${pct}% of goal</span></div><div class="ux-fig"><b>${dd(wk)}</b><span>${UL()}</span></div><small>${wk>=wGoal()?"Weekly goal reached":`${du(Math.max(0,wGoal()-wk))} to go of ${du(wGoal())}`}</small><div class="plot"><div class="pbars">${bars}</div><i class="pgoal" style="bottom:${(S.goal/mx*100).toFixed(1)}%"></i></div><div class="plabs">${labs}</div></article><article class="ux-tile ux-sm"><span class="ux-ico fl">${UX.flame}</span><b>${sk}</b><small>${sk===1?"day":"days"} streak</small></article><article class="ux-tile ux-sm"><span class="ux-ico">${UX.route}</span><b>${dd(all)}</b><small>${UL()} all time</small></article></section>`;
  const wtabs=[["recent","Recent"],["cal","Calendar"],["stats","Stats"]];
  const body=wt==="recent"?`${wsOpen?`<div class="spanel"><div class="chips" role="group" aria-label="Filter walks">${[["all","All"],["week","This week"],["month","This month"],["photos","Photos"],["long","Longest"]].map(([k,l])=>`<button class="fc${wf===k?" on":""}" data-a="wf" data-id="${k}">${l}</button>`).join("")}</div><input id="wq" class="sq" type="search" placeholder="Search walks" aria-label="Search walks" value="${esc(wq)}"></div>`:""}${S.walks.length?`<div class="feed" id="cf">${feedHTML()}</div>`:`<div class="card empty" style="margin-top:14px"><b>No walks yet</b><p>Start a walk from Today, or log one you already did.</p><button class="btn sm" data-a="newW">Log a walk</button></div>`}`:wt==="cal"?calCard():`<div class="cols"><div><h2>This week</h2><div class="card sec2"><div class="tr"><b>${du(wk)} <span class="mu" style="font-weight:600">of ${du(wGoal())}</span></b><small class="mu">${du(S.goal)} a day${S.rest.length?` · ${S.rest.length} rest ${S.rest.length===1?"day":"days"}`:""}</small></div><i class="bar" style="--c:${wk>=wGoal()?"var(--ok)":"var(--ac)"};height:8px;margin-top:10px"><i style="width:${Math.max(2,pct)}%"></i></i><div class="plot"><div class="pbars">${bars}</div><i class="pgoal" style="bottom:${(S.goal/mx*100).toFixed(1)}%"></i></div><div class="plabs">${labs}</div></div></div><div><h2>Records</h2>${recCard()}<h2>Milestones</h2>${milCard()}</div></div>`;
  return `<header class="ph"><h1>Walks</h1><div class="hb">${wt==="recent"?`<button class="ic${wsOpen?" on":""}" data-a="wsrch" aria-label="Search walks" aria-expanded="${wsOpen}">${SRCH}</button>`:""}<button class="btn sm" data-a="newW">Log walk</button></div></header>${wt==="recent"?wcard:""}<div class="kpi"${wt==="recent"?" hidden":""}><div><small>This week</small><b>${du(wk)}</b></div><div><small>Streak</small><b>${sk} ${sk===1?"day":"days"}</b></div><div><small>All time</small><b>${du(all)}</b></div></div><div class="seg s3" role="group" aria-label="Walks view">${wtabs.map(([k,l])=>`<button class="${wt===k?"on":""}" data-a="wt" data-id="${k}">${l}</button>`).join("")}</div>${body}`;
 }
 const moneyS=n=>{try{return new Intl.NumberFormat(undefined,{style:"currency",currency:S.cur,maximumFractionDigits:0}).format(n)}catch{return S.cur+" "+Math.round(n)}};
-const subGroups=on=>[["Due this week",o=>o.l<=7],["Later this month",o=>o.l>7&&o.l<=30],["Later",o=>o.l>30]].map(([t,f])=>{const a=on.filter(f);return a.length?`<h2>${t}</h2><div class="card">${a.map(o=>subRow(o.s,o.d,o.l)).join("")}</div>`:""}).join("");
+const subGroups=on=>[["Due this week",o=>o.l<=7],["Later this month",o=>o.l>7&&o.l<=30],["Later",o=>o.l>30]].map(([t,f])=>{const a=on.filter(f);return a.length?`<h2>${t}<span class="ux-cnt">${a.length}</span></h2><div class="card">${a.map(o=>subRow(o.s,o.d,o.l)).join("")}</div>`:""}).join("");
 function vSubs(){
  const on=S.subs.filter(s=>s.on).map(s=>{const d=nextD(s);return{s,d,l:dl(d)}}).sort((a,b)=>a.l-b.l),off=S.subs.filter(s=>!s.on),m=on.reduce((a,o)=>a+mcost(o.s),0),nx=on[0];
- return `<header class="ph"><h1>Renewals</h1><button class="btn sm" data-a="newS">Add subscription</button></header><section class="mhero"><small>Monthly spend</small><b>${moneyS(m)}</b><div class="mh2"><span>${moneyS(m*12)} a year</span>${nx?`<span class="c2">${esc(nx.s.name)} ${when(nx.l).toLowerCase()}</span>`:""}</div></section>
+ const rail=on.filter(o=>o.l<=30).slice(0,8),hotN=nx&&nx.l<=nx.s.rem;
+ return `<header class="ph"><h1>Renewals</h1><button class="btn sm" data-a="newS">Add subscription</button></header><section class="mhero"><div class="ux-top"><small>Monthly spend</small>${on.length?`<span class="ux-pill">${on.length} active</span>`:""}</div><b>${moneyS(m)}</b><div class="mh2"><span>${moneyS(m*12)} a year</span>${nx?`<span class="c2">Next: ${esc(nx.s.name)} · ${when(nx.l).toLowerCase()}</span>`:""}</div></section>${rail.length>1?`<div class="ux-rh"><h2>Coming up</h2><small>Next 30 days</small></div><div class="rail" role="list">${rail.map(o=>`<button class="ux-rc${o.l<=o.s.rem?" hot":""}" role="listitem" data-a="editS" data-id="${o.s.id}"><span class="ux-rd"><b>${o.d.getDate()}</b><small>${o.d.toLocaleDateString(undefined,{month:"short"})}</small></span><span class="ti lt" style="--c:${hue(o.s)}">${esc((o.s.name[0]||"?").toUpperCase())}</span><span class="ux-rn">${esc(o.s.name)}</span><span class="ux-ra">${money(o.s.amt)}</span></button>`).join("")}</div>`:""}
  <div class="cols"><div>${on.length?subGroups(on):`<div class="card empty"><b>No subscriptions yet</b><p>Add Netflix, Spotify, iCloud or anything that bills you.</p><button class="btn sm" data-a="newS">Add subscription</button></div>`}
  ${on.length?`<button class="btn g" style="margin-top:12px" data-a="icsAll">Add all to calendar</button>`:""}${off.length?`<h2>Cancelled</h2><div class="card">${off.map(s=>subRow(s,parse(s.next),99)).join("")}</div>`:""}</div>
  <div>${on.length?`<h2>By category</h2><div class="card sec2 spl">${catRows(on)}</div>`:""}</div></div>`;
@@ -789,7 +960,7 @@ setInterval(()=>{const e=document.getElementById("clk");if(e&&S.timer)e.textCont
 document.addEventListener("keydown",e=>{if(e.key==="Escape")close();if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches(".rg[data-a]")){e.preventDefault();e.target.click()}});
 
 let sx=0,sy=0;const vp=$(".vp");
-vp.addEventListener("touchstart",e=>{sw=!e.target.closest(".stk,.chips,.pre,.mg,.pbars,[data-sw],input,textarea,select");sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+vp.addEventListener("touchstart",e=>{sw=!e.target.closest(".stk,.chips,.pre,.rail,.mg,.pbars,[data-sw],input,textarea,select");sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
 vp.addEventListener("touchend",e=>{if(!sw)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.6){const n=idx+(dx<0?1:-1);if(n>=0&&n<T.length)go(n)}},{passive:true});
 
 ld=iso(today());
